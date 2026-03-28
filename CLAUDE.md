@@ -10,6 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Backend — Python
 - **Framework:** FastAPI
+- **Database:** PostgreSQL
 - **Database migrations:** Alembic
 - **Tests:** pytest
 

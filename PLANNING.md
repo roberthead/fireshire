@@ -81,6 +81,7 @@ All spatial data comes from the City of Ashland's public ArcGIS REST services at
 
 ### Backend — Python
 - **Framework:** FastAPI
+- **Database:** PostgreSQL
 - **Database migrations:** Alembic
 - **Tests:** pytest
 - **Role:** Proxy and cache Ashland GIS queries, serve API to frontend
