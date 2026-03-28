@@ -20,14 +20,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Map:** Mapbox GL JS (satellite basemap) with Leaflet as fallback
 - **Geometry:** Turf.js for client-side buffer/difference operations on building polygons
 
-### External APIs (all free, no keys except Mapbox)
-- Nominatim (OpenStreetMap) — address geocoding
-- Overpass API (OpenStreetMap) — building footprint GeoJSON
-- Mapbox GL JS — map rendering (requires public token)
+### Data Source — Ashland GIS (ArcGIS Enterprise)
+All spatial data comes from the City of Ashland's public ArcGIS REST services at `gis.ashland.or.us`. No authentication required. All endpoints support `?f=geojson`.
+
+- **Taxlots FeatureServer** — address lookup, parcel boundaries: `/arcgis/rest/services/taxlots/FeatureServer/0/query`
+- **Buildings MapServer** — building footprints: `/arcgis/rest/services/buildings/MapServer/0/query`
+- **Mapbox GL JS** — satellite basemap rendering (requires public token)
+
+### Ashland GIS Query Notes
+- Native projection is WKID 2270 (NAD 1983 State Plane Oregon South, feet) — use `outSR=4326` or `outSR=3857` to avoid client-side reprojection
+- Max 2,000 records per query (paginate with `resultOffset` / `resultRecordCount`)
+- Spatial queries use `geometryType`, `geometry`, and `spatialRel` params
 
 ## Data Flow
 
-Address input → Backend geocodes via Nominatim → Backend fetches building footprints from Overpass (within ~150m bbox) → Frontend computes Turf.js buffer at 5/10/30/100 ft with ring differencing → Mapbox GL JS overlay on satellite basemap.
+Address input → Backend queries Taxlots FeatureServer for parcel polygon + centroid → Backend queries Buildings MapServer (spatial query within parcel bbox + buffer) → Frontend computes Turf.js buffer at 5/10/30/100 ft with ring differencing → Mapbox GL JS overlay on satellite basemap.
 
 ## Zone Model
 
@@ -42,7 +49,7 @@ Buffer each building polygon independently, then `turf.union` same-zone rings to
 
 ## Key Constraints
 
-- Set a descriptive `User-Agent` header on Nominatim requests per OSM policy
-- Cache Overpass results per address — don't re-query on every render
+- Ashland-only scope — tool won't work for addresses outside Ashland GIS coverage
+- Request data in EPSG 4326 or 3857 via `outSR` to avoid reprojection
+- Taxlot address fields may require fuzzy matching / normalization
 - Consider Web Workers for Turf.js buffer/difference on parcels with many structures
-- Microsoft Global Building Footprints is the fallback when OSM coverage is sparse
