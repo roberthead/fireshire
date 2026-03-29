@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import Markdown from 'react-markdown'
 import type { Plant } from '../lib/api'
 import type { ChatMessage } from '../lib/chatApi'
 import { streamChat } from '../lib/chatApi'
@@ -121,11 +122,16 @@ export function ChatPanel({ address, zones, plants }: ChatPanelProps) {
               padding: '0.5rem 0.75rem',
               fontSize: '0.8rem',
               color: 'var(--color-text, #e2e8f0)',
-              whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
             }}
           >
-            {msg.content}
+            {msg.role === 'user' ? (
+              msg.content
+            ) : (
+              <div className="chat-markdown">
+                <Markdown>{msg.content}</Markdown>
+              </div>
+            )}
           </div>
         ))}
         <div ref={messagesEndRef} />
