@@ -76,3 +76,72 @@ export async function fetchBuildings(bbox: {
     throw err
   }
 }
+
+// --- Plants API types ---
+
+export interface PlantImage {
+  id: string
+  url: string
+  caption: string | null
+}
+
+export interface PlantValue {
+  attributeId: string
+  attributeName: string
+  rawValue: string
+  resolved: { value: string; type: string; id: string }
+}
+
+export interface Plant {
+  id: string
+  genus: string
+  species: string
+  commonName: string
+  primaryImage: PlantImage | null
+  values: PlantValue[]
+}
+
+export interface PlantResponse {
+  data: Plant[]
+  meta: {
+    pagination: { total: number; limit: number; offset: number; hasMore: boolean }
+  }
+}
+
+export async function fetchPlants(
+  zones: string[],
+  search?: string,
+  limit = 50,
+  offset = 0,
+): Promise<PlantResponse> {
+  const params = new URLSearchParams({
+    zones: zones.join(','),
+    limit: String(limit),
+    offset: String(offset),
+  })
+  if (search) {
+    params.set('search', search)
+  }
+  try {
+    const res = await fetch(`/api/plants?${params}`)
+    if (!res.ok) {
+      const body = await res.json().catch(() => null)
+      throw new ApiError(
+        res.status,
+        body?.error ?? null,
+        body?.detail ?? 'Server error',
+      )
+    }
+    return res.json()
+  } catch (err) {
+    if (err instanceof ApiError) throw err
+    if (err instanceof TypeError) {
+      throw new ApiError(
+        0,
+        'network_error',
+        "We can't reach our server right now. Please check your connection and try again.",
+      )
+    }
+    throw err
+  }
+}

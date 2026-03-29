@@ -5,12 +5,15 @@ import type { FeatureCollection, Polygon, MultiPolygon } from 'geojson'
 import { AddressSearch } from '../components/AddressSearch'
 import { ZoneLegend } from '../components/ZoneLegend'
 import { ZoneSummary } from '../components/ZoneSummary'
+import { PlantPanel } from '../components/PlantPanel'
 import { MapView } from '../components/MapView'
 import { MapProvider } from '../contexts/MapContext'
 import { ZoneOverlay } from '../components/ZoneOverlay'
 import { computeZoneRings } from '../lib/computeZoneRings'
 import { fetchBuildings, ApiError, type Parcel } from '../lib/api'
 import { StatusBanner } from '../components/StatusBanner'
+import { useMapContext } from '../hooks/useMapContext'
+import { activeZoneDisplayNames } from '../lib/zoneDisplayNames'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -28,8 +31,16 @@ function bboxFromGeometry(geometry: Parcel['geometry']) {
   return { xmin, ymin, xmax, ymax }
 }
 
+function PlantPanelConnector({ onClose }: { onClose: () => void }) {
+  const { zoneVisibility } = useMapContext()
+  const zones = activeZoneDisplayNames(zoneVisibility)
+  if (zones.length === 0) return null
+  return <PlantPanel zones={zones} onClose={onClose} />
+}
+
 function HomePage() {
   const [selectedParcel, setSelectedParcel] = useState<Parcel | null>(null)
+  const [plantPanelOpen, setPlantPanelOpen] = useState(true)
 
   const bbox = selectedParcel ? bboxFromGeometry(selectedParcel.geometry) : null
 
@@ -53,7 +64,7 @@ function HomePage() {
   return (
     <MapProvider>
       <div className="overlay-top-left">
-        <AddressSearch onParcelSelected={setSelectedParcel} />
+        <AddressSearch onParcelSelected={(parcel) => { setSelectedParcel(parcel); setPlantPanelOpen(true) }} />
       </div>
       {buildingsFetching && selectedParcel && (
         <div className="overlay-below-search">
@@ -89,6 +100,11 @@ function HomePage() {
             buildingCount={buildings.features.length}
             zones={zones}
           />
+        </div>
+      )}
+      {selectedParcel && hasBuildings && plantPanelOpen && (
+        <div className="overlay-right">
+          <PlantPanelConnector onClose={() => setPlantPanelOpen(false)} />
         </div>
       )}
       <MapView ariaLabel={mapAriaLabel} />

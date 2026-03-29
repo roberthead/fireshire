@@ -188,3 +188,19 @@ export function activeZoneDisplayNames(visibility: Record<string, boolean>): str
 | Frontend unit | fetchPlants API client | Vitest with fetch mock |
 | Integration | Full flow: address → zones → plants | Manual via dev servers |
 
+## Learnings
+
+### LWF Plants API
+- The HIZ attribute ID `b908b170-70c9-454d-a2ed-d86f98cb3de1` is the key to mapping plants → fire zones. Always request it via `attributeIds` param.
+- Plants are multi-zone — a single plant can appear in multiple HIZ zones. Filter with "any match" logic, not "exact match".
+- Use `resolved.value` (e.g. `"10-30"`) for display names, NOT `rawValue` (e.g. `"03"`) which is an opaque ID.
+- The `05` / `"50-100"` value is Idaho-specific and a subset of Zone 4 — treat it as Zone 4 if needed.
+- Response pagination uses `{ data, meta: { pagination: { total, limit, offset, hasMore } } }` — standard offset-based.
+
+### Backend Proxy Pattern
+- When proxying a non-GIS upstream, create a separate httpx client (don't reuse `gis_client`) with its own error type. This keeps error handling clean — `PlantsApiError` vs `GISServiceError` map to different 503 error codes in the response.
+- The LWF API doesn't need retries or exponential backoff (it's a Vercel-hosted app, not flaky GIS infrastructure), so the plants client is simpler than `gis_client`.
+
+### Frontend Architecture
+- Components that need `MapContext` data but are rendered inside `<MapProvider>` at the page level need a connector pattern — a small wrapper component that calls `useMapContext()` and passes data as props to the pure component. This keeps the pure component testable without mocking context.
+- `PlantPanelConnector` in `index.tsx` bridges context → props for `PlantPanel`, which only receives `zones: string[]` and `onClose`.

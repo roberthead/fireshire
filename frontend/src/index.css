@@ -190,6 +190,15 @@ body {
   z-index: 1;
 }
 
+.overlay-right {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  width: 320px;
+  max-height: calc(100vh - 120px);
+  z-index: 1;
+}
+
 /* Touch targets — universal (WCAG 2.5.8) */
 .search-input {
   min-height: 44px;
@@ -248,6 +257,14 @@ body {
     max-width: calc(100vw - var(--space-6));
   }
 
+  .overlay-right {
+    position: static;
+    width: 100%;
+    padding: 0 var(--space-3) var(--space-2);
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+
   .search-input {
     width: 100%;
     flex: 1;
@@ -281,5 +298,9 @@ body {
   .search-button {
     padding: var(--space-2) var(--space-3);
     font-size: var(--font-size-sm);
+  }
+
+  .overlay-right {
+    max-height: 35vh;
   }
 }

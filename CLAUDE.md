@@ -105,6 +105,13 @@ Buffer each building polygon independently, then `turf.union` same-zone rings to
 - `min-width: 0` on flex search inputs prevents overflow on narrow viewports (flex items don't shrink below content size by default)
 - `turf.area()` accepts a FeatureCollection directly — no need to iterate individual features
 
+### LWF Plants API
+- HIZ attribute ID `b908b170-70c9-454d-a2ed-d86f98cb3de1` maps plants to fire zones — always request via `attributeIds` param
+- Plants are multi-zone (one plant can appear in multiple HIZ zones) — filter with "any match" logic
+- Use `resolved.value` (e.g. `"10-30"`) for display, not `rawValue` (e.g. `"03"`) which is opaque
+- When proxying a non-GIS upstream, create a separate httpx client with its own error type to keep error handling clean
+- Connector pattern (small wrapper calling `useMapContext()` that passes data as props) keeps pure components testable without mocking context
+
 ### CSS / Design
 - Dark frosted glass (`rgba(0,0,0,0.55)` + `backdrop-filter: blur`) reads better over satellite imagery than light/white glass
 - CSS `@media (max-width: 768px)` is preferable to JS `matchMedia` for layout breakpoints — works correctly with browser zoom
