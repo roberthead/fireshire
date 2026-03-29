@@ -33,6 +33,7 @@ export function AddressSearch({
 }) {
   const [address, setAddress] = useState('')
   const [searchAddress, setSearchAddress] = useState('')
+  const [listDismissed, setListDismissed] = useState(false)
   const { map } = useMapContext()
   const autoSelectedRef = useRef('')
 
@@ -61,15 +62,17 @@ export function AddressSearch({
     e.preventDefault()
     if (address.trim().length < 2) return
     autoSelectedRef.current = ''
+    setListDismissed(false)
     setSearchAddress(address.trim())
   }
 
   function handleSelect(parcel: Parcel) {
+    setListDismissed(true)
     if (map) showParcelOnMap(map, parcel)
     onParcelSelected?.(parcel)
   }
 
-  const showResults = searchAddress.length > 0 && !isFetching && parcels.length > 1
+  const showResults = searchAddress.length > 0 && !isFetching && parcels.length > 1 && !listDismissed
 
   return (
     <div>

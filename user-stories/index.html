@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FireShire — Kanban</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+  h1 { padding: 1rem 1.5rem; font-size: 1.25rem; background: #1e293b; border-bottom: 1px solid #334155; }
+  .board { display: flex; gap: 1rem; padding: 1rem; height: calc(100vh - 3.5rem); overflow-x: auto; }
+  .column { flex: 1; min-width: 280px; background: #1e293b; border-radius: 8px; display: flex; flex-direction: column; }
+  .column-header { padding: 0.75rem 1rem; font-weight: 600; font-size: 0.9rem; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+  .column-header .count { background: #334155; padding: 0.1rem 0.5rem; border-radius: 10px; font-size: 0.75rem; }
+  .cards { flex: 1; overflow-y: auto; padding: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .card { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 0.75rem; cursor: pointer; transition: border-color 0.15s; }
+  .card:hover { border-color: #60a5fa; }
+  .card h3 { font-size: 0.85rem; font-weight: 500; margin-bottom: 0.35rem; }
+  .card p { font-size: 0.75rem; color: #94a3b8; line-height: 1.4; }
+  .tags { display: flex; gap: 0.35rem; margin-top: 0.5rem; flex-wrap: wrap; }
+  .tag { font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 3px; font-weight: 500; }
+  .tag-s { background: #164e63; color: #67e8f9; }
+  .tag-m { background: #3b0764; color: #c084fc; }
+  .tag-l { background: #713f12; color: #fbbf24; }
+  .tag-p1 { background: #7f1d1d; color: #fca5a5; }
+  .tag-p2 { background: #78350f; color: #fcd34d; }
+  .tag-p3 { background: #14532d; color: #86efac; }
+  .col-backlog .column-header { border-top: 3px solid #64748b; border-radius: 8px 8px 0 0; }
+  .col-current .column-header { border-top: 3px solid #3b82f6; border-radius: 8px 8px 0 0; }
+  .col-done .column-header { border-top: 3px solid #22c55e; border-radius: 8px 8px 0 0; }
+  .empty { color: #475569; font-size: 0.8rem; text-align: center; padding: 2rem 1rem; }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10; justify-content: center; align-items: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #1e293b; border: 1px solid #334155; border-radius: 8px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; padding: 1.5rem; }
+  .modal h2 { font-size: 1rem; margin-bottom: 0.75rem; }
+  .modal pre { background: #0f172a; padding: 1rem; border-radius: 4px; font-size: 0.8rem; white-space: pre-wrap; word-wrap: break-word; color: #cbd5e1; line-height: 1.5; }
+  .modal-close { float: right; background: none; border: none; color: #94a3b8; font-size: 1.25rem; cursor: pointer; }
+  .modal-close:hover { color: #e2e8f0; }
+</style>
+</head>
+<body>
+
+<h1>FireShire — Kanban</h1>
+
+<div class="board">
+  <div class="column col-backlog">
+    <div class="column-header">Backlog <span class="count" id="backlog-count">0</span></div>
+    <div class="cards" id="backlog"></div>
+  </div>
+  <div class="column col-current">
+    <div class="column-header">In Progress <span class="count" id="current-count">0</span></div>
+    <div class="cards" id="current"></div>
+  </div>
+  <div class="column col-done">
+    <div class="column-header">Done <span class="count" id="done-count">0</span></div>
+    <div class="cards" id="done"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" id="modal-close">&times;</button>
+    <h2 id="modal-title"></h2>
+    <pre id="modal-body"></pre>
+  </div>
+</div>
+
+<script>
+const stories = {
+  backlog: [
+    { id: '08', title: 'Zone Legend Polish + Interactivity', summary: 'Frosted glass legend with zone toggle, fire strategy descriptions, collapsible on mobile', size: 'S', priority: 'P2' },
+    { id: '09', title: 'Text-Based Zone Summary (a11y)', summary: 'Screen reader alternative: text panel with address, building count, zone areas, aria-live announcements', size: 'M', priority: 'P2' },
+    { id: '10', title: 'Loading States + Error Handling', summary: 'Narrative loading text, error banners with retry, GIS-unavailable messaging, inline alerts', size: 'S', priority: 'P2' },
+    { id: '11', title: 'Header Branding + Typography', summary: 'Fire/Shire wordmark, Inter font, 4px spacing grid, consistent focus rings and hover states', size: 'M', priority: 'P2' },
+    { id: '12', title: 'Mobile-Responsive Layout', summary: 'Stacked layout under 768px, 44px touch targets, collapsible legend, no horizontal scroll at 320px', size: 'M', priority: 'P3' },
+  ],
+  current: [],
+  done: [
+    { id: '01', title: 'GIS Service Client', summary: 'Async HTTP client for Ashland GIS with retries, timeouts, and GISServiceError exception handling', size: 'S', priority: 'P1' },
+    { id: '02', title: 'Parcel Lookup API', summary: 'GET /api/parcels — queries Taxlots FeatureServer, normalizes addresses, returns GeoJSON + centroid', size: 'M', priority: 'P1' },
+    { id: '03', title: 'Building Footprints API', summary: 'GET /api/buildings — spatial envelope query against Buildings MapServer with 100ft buffer and pagination', size: 'M', priority: 'P1' },
+    { id: '04', title: 'Satellite Basemap', summary: 'Mapbox GL JS satellite-streets map centered on Ashland, shared via MapContext', size: 'M', priority: 'P1' },
+    { id: '05', title: 'Turf.js Zone Computation', summary: 'Pure function: building polygons → 4 zone ring FeatureCollections via buffer/difference/union', size: 'L', priority: 'P1' },
+    { id: '06', title: 'Address Search Integration', summary: 'TanStack Query search → flyTo parcel → dashed boundary overlay, disambiguation list, a11y alerts', size: 'M', priority: 'P1' },
+    { id: '07', title: 'Zone Overlay Rendering', summary: 'Color-coded translucent zone rings + building footprints on Mapbox with correct z-ordering', size: 'L', priority: 'P1' },
+  ],
+};
+
+function createCard(story) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <h3>#${story.id} ${story.title}</h3>
+    <p>${story.summary}</p>
+    <div class="tags">
+      <span class="tag tag-${story.size.toLowerCase()}">${story.size}</span>
+      <span class="tag tag-${story.priority.toLowerCase()}">${story.priority}</span>
+    </div>
+  `;
+  card.addEventListener('click', () => showModal(story));
+  return card;
+}
+
+function render() {
+  for (const [column, items] of Object.entries(stories)) {
+    const container = document.getElementById(column);
+    const count = document.getElementById(`${column}-count`);
+    container.innerHTML = '';
+    count.textContent = items.length;
+    if (items.length === 0) {
+      container.innerHTML = '<div class="empty">No stories</div>';
+    } else {
+      items.forEach(s => container.appendChild(createCard(s)));
+    }
+  }
+}
+
+function showModal(story) {
+  document.getElementById('modal-title').textContent = `#${story.id} ${story.title}`;
+  document.getElementById('modal-body').textContent =
+    `Summary: ${story.summary}\nSize: ${story.size}\nPriority: ${story.priority}`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+document.getElementById('modal-close').addEventListener('click', () => {
+  document.getElementById('modal-overlay').classList.remove('open');
+});
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') document.getElementById('modal-overlay').classList.remove('open');
+});
+
+render();
+</script>
+</body>
+</html>
