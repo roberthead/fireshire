@@ -11,6 +11,17 @@ vi.mock('../lib/api', async () => {
   }
 })
 
+vi.mock('../lib/plantSearch', () => ({
+  plantMatchesSearch: (plant: { commonName: string; genus: string; species: string }, query: string) => {
+    const q = query.toLowerCase()
+    return (
+      plant.commonName.toLowerCase().includes(q) ||
+      plant.genus.toLowerCase().includes(q) ||
+      plant.species.toLowerCase().includes(q)
+    )
+  },
+}))
+
 import { fetchPlants } from '../lib/api'
 const mockFetchPlants = fetchPlants as ReturnType<typeof vi.fn>
 
@@ -107,5 +118,60 @@ describe('PlantPanel', () => {
     await screen.findByText('Glossy abelia')
     fireEvent.click(screen.getByLabelText('Close plant panel'))
     expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('filters plants by search input', async () => {
+    mockFetchPlants.mockResolvedValue(SAMPLE_PLANTS)
+    renderWithQuery(<PlantPanel zones={['10-30', '30-100', '0-5']} onClose={() => {}} />)
+    // Wait for data to load
+    expect(await screen.findByText('Glossy abelia')).toBeTruthy()
+    expect(screen.getByText('Japanese maple')).toBeTruthy()
+
+    // Type in search box
+    const searchInput = screen.getByPlaceholderText('Search plants...')
+    fireEvent.change(searchInput, { target: { value: 'abelia' } })
+
+    // Only matching plant should remain
+    expect(screen.getByText('Glossy abelia')).toBeTruthy()
+    expect(screen.queryByText('Japanese maple')).toBeNull()
+  })
+
+  it('shows "Y of X" count when searching', async () => {
+    mockFetchPlants.mockResolvedValue(SAMPLE_PLANTS)
+    renderWithQuery(<PlantPanel zones={['10-30', '30-100', '0-5']} onClose={() => {}} />)
+    await screen.findByText('Glossy abelia')
+
+    const searchInput = screen.getByPlaceholderText('Search plants...')
+    fireEvent.change(searchInput, { target: { value: 'abelia' } })
+
+    // Should show "1 of 2" (1 match out of 2 zone-filtered plants)
+    expect(screen.getByText('1 of 2')).toBeTruthy()
+  })
+
+  it('shows all plants when search is cleared', async () => {
+    mockFetchPlants.mockResolvedValue(SAMPLE_PLANTS)
+    renderWithQuery(<PlantPanel zones={['10-30', '30-100', '0-5']} onClose={() => {}} />)
+    await screen.findByText('Glossy abelia')
+
+    const searchInput = screen.getByPlaceholderText('Search plants...')
+    fireEvent.change(searchInput, { target: { value: 'abelia' } })
+    expect(screen.queryByText('Japanese maple')).toBeNull()
+
+    // Clear search
+    fireEvent.change(searchInput, { target: { value: '' } })
+    expect(screen.getByText('Glossy abelia')).toBeTruthy()
+    expect(screen.getByText('Japanese maple')).toBeTruthy()
+  })
+
+  it('shows no-match message when search has no results', async () => {
+    mockFetchPlants.mockResolvedValue(SAMPLE_PLANTS)
+    renderWithQuery(<PlantPanel zones={['10-30', '30-100', '0-5']} onClose={() => {}} />)
+    await screen.findByText('Glossy abelia')
+
+    const searchInput = screen.getByPlaceholderText('Search plants...')
+    fireEvent.change(searchInput, { target: { value: 'zzzznotaplant' } })
+
+    expect(screen.queryByText('Glossy abelia')).toBeNull()
+    expect(screen.getByText(/no plants match/i)).toBeTruthy()
   })
 })

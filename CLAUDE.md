@@ -94,6 +94,8 @@ Buffer each building polygon independently, then `turf.union` same-zone rings to
 - `map.setLayoutProperty(layerId, 'visibility', 'visible'|'none')` is the correct approach for toggling layers — preserves layer ordering and is performant
 - `!important` is needed for `.mapboxgl-ctrl button` sizing since Mapbox GL JS applies its own inline styles
 - Adding `role="img"` + `aria-label` to the map container makes it meaningful to screen readers
+- Wrap `useEffect` bodies that call Mapbox layer/source APIs in try/catch — `map.style` can be transiently `undefined` during React Strict Mode double-invocation, crashing `getLayer`/`getSource`/`addSource`
+- Guard `addSource`/`addLayer` with `!map.getSource(id)` checks to survive React Strict Mode effect replay
 
 ### Frontend / React
 - `@testing-library/user-event` is not installed — use `fireEvent` from `@testing-library/react` for click interactions
@@ -109,6 +111,7 @@ Buffer each building polygon independently, then `turf.union` same-zone rings to
 - HIZ attribute ID `b908b170-70c9-454d-a2ed-d86f98cb3de1` maps plants to fire zones — always request via `attributeIds` param
 - Plants are multi-zone (one plant can appear in multiple HIZ zones) — filter with "any match" logic
 - Use `resolved.value` (e.g. `"10-30"`) for display, not `rawValue` (e.g. `"03"`) which is opaque
+- **`commonName`, `genus`, `species` can be `null`** — always use optional chaining in search logic and fallbacks in rendering
 - When proxying a non-GIS upstream, create a separate httpx client with its own error type to keep error handling clean
 - Connector pattern (small wrapper calling `useMapContext()` that passes data as props) keeps pure components testable without mocking context
 

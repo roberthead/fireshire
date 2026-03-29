@@ -1,6 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchPlants, ApiError, type Plant } from '../lib/api'
+import { plantMatchesSearch } from '../lib/plantSearch'
 import { StatusBanner } from './StatusBanner'
 
 export interface PlantPanelProps {
@@ -39,6 +40,8 @@ export function PlantPanel({ zones, onClose }: PlantPanelProps) {
     enabled: zones.length > 0,
   })
 
+  const [searchQuery, setSearchQuery] = useState('')
+
   const filteredPlants = useMemo(() => {
     if (!data) return []
     return data.data.filter((plant) => {
@@ -46,6 +49,10 @@ export function PlantPanel({ zones, onClose }: PlantPanelProps) {
       return plantZones.some((z) => zones.includes(z))
     })
   }, [data, zones])
+
+  const searchedPlants = searchQuery
+    ? filteredPlants.filter((p) => plantMatchesSearch(p, searchQuery))
+    : filteredPlants
 
   if (isFetching) {
     return <StatusBanner variant="loading" message="Finding plants..." />
@@ -93,7 +100,9 @@ export function PlantPanel({ zones, onClose }: PlantPanelProps) {
                 borderRadius: 3,
               }}
             >
-              {filteredPlants.length}
+              {searchQuery
+                ? `${searchedPlants.length} of ${filteredPlants.length}`
+                : filteredPlants.length}
             </span>
           )}
         </div>
@@ -118,6 +127,24 @@ export function PlantPanel({ zones, onClose }: PlantPanelProps) {
         </button>
       </div>
 
+      <input
+        type="search"
+        placeholder="Search plants..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '0.4rem 0.6rem',
+          marginBottom: '0.5rem',
+          background: 'rgba(255,255,255,0.1)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          borderRadius: 4,
+          color: '#e2e8f0',
+          fontSize: '0.8rem',
+          outline: 'none',
+        }}
+      />
+
       {/* Body */}
       <div
         style={{
@@ -127,13 +154,15 @@ export function PlantPanel({ zones, onClose }: PlantPanelProps) {
           padding: '0 0.75rem',
         }}
       >
-        {filteredPlants.length === 0 && (
+        {searchedPlants.length === 0 && (
           <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-            No plants recommended for the active zones.
+            {searchQuery
+              ? 'No plants match your search.'
+              : 'No plants recommended for the active zones.'}
           </p>
         )}
 
-        {filteredPlants.map((plant, i) => {
+        {searchedPlants.map((plant, i) => {
           const plantZones = getPlantZones(plant).filter((z) => zones.includes(z))
           return (
             <div
@@ -143,7 +172,7 @@ export function PlantPanel({ zones, onClose }: PlantPanelProps) {
                 gap: '0.5rem',
                 padding: '0.5rem 0',
                 borderBottom:
-                  i < filteredPlants.length - 1
+                  i < searchedPlants.length - 1
                     ? '1px solid rgba(255,255,255,0.08)'
                     : 'none',
               }}
@@ -152,7 +181,7 @@ export function PlantPanel({ zones, onClose }: PlantPanelProps) {
               {plant.primaryImage ? (
                 <img
                   src={plant.primaryImage.url}
-                  alt={plant.commonName}
+                  alt={plant.commonName || 'Plant'}
                   style={{
                     width: 48,
                     height: 48,
@@ -182,7 +211,7 @@ export function PlantPanel({ zones, onClose }: PlantPanelProps) {
                     color: 'var(--color-text)',
                   }}
                 >
-                  {plant.commonName}
+                  {plant.commonName || 'Unknown'}
                 </div>
                 <div
                   style={{
@@ -191,7 +220,7 @@ export function PlantPanel({ zones, onClose }: PlantPanelProps) {
                     color: 'var(--color-text-muted)',
                   }}
                 >
-                  {plant.genus} {plant.species}
+                  {plant.genus ?? ''} {plant.species ?? ''}
                 </div>
                 {/* Zone badges */}
                 <div
@@ -233,7 +262,7 @@ export function PlantPanel({ zones, onClose }: PlantPanelProps) {
             textAlign: 'center',
           }}
         >
-          Showing {filteredPlants.length} of {data.meta.pagination.total} plants
+          Showing {searchedPlants.length} of {data.meta.pagination.total} plants
         </p>
       )}
     </div>
