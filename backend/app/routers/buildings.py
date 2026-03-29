@@ -2,7 +2,7 @@ from fastapi import APIRouter, Query
 
 from app.services.gis_client import gis_client
 
-router = APIRouter(prefix="/api")
+router = APIRouter()
 
 BUILDINGS_URL = "/arcgis/rest/services/buildings/MapServer/0/query"
 

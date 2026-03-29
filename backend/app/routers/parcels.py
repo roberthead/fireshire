@@ -2,7 +2,7 @@ from fastapi import APIRouter, Query
 
 from app.services.gis_client import gis_client
 
-router = APIRouter(prefix="/api")
+router = APIRouter()
 
 TAXLOTS_URL = "/arcgis/rest/services/taxlots/FeatureServer/0/query"
 

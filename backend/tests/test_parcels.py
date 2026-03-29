@@ -35,7 +35,7 @@ async def test_parcel_lookup_success(client):
     respx.get(TAXLOTS_URL).mock(
         return_value=httpx.Response(200, json={"features": [SAMPLE_PARCEL]})
     )
-    response = await client.get("/api/parcels", params={"address": "570 Siskiyou"})
+    response = await client.get("/parcels", params={"address": "570 Siskiyou"})
     assert response.status_code == 200
     data = response.json()
     assert len(data["parcels"]) == 1
@@ -54,7 +54,7 @@ async def test_parcel_lookup_no_results(client):
     respx.get(TAXLOTS_URL).mock(
         return_value=httpx.Response(200, json={"features": []})
     )
-    response = await client.get("/api/parcels", params={"address": "99999 Nowhere"})
+    response = await client.get("/parcels", params={"address": "99999 Nowhere"})
     assert response.status_code == 200
     assert response.json()["parcels"] == []
 
@@ -65,7 +65,7 @@ async def test_parcel_lookup_normalizes_address(client):
     route = respx.get(TAXLOTS_URL).mock(
         return_value=httpx.Response(200, json={"features": []})
     )
-    await client.get("/api/parcels", params={"address": "  570  siskiyou  "})
+    await client.get("/parcels", params={"address": "  570  siskiyou  "})
     # Verify the where clause was uppercased and whitespace-collapsed
     from urllib.parse import unquote_plus
     request = route.calls[0].request
@@ -79,12 +79,12 @@ async def test_parcel_lookup_gis_failure(client):
     respx.get(TAXLOTS_URL).mock(
         return_value=httpx.Response(502, text="Bad Gateway")
     )
-    response = await client.get("/api/parcels", params={"address": "570 Siskiyou"})
+    response = await client.get("/parcels", params={"address": "570 Siskiyou"})
     assert response.status_code == 503
     assert response.json()["error"] == "gis_unavailable"
 
 
 @pytest.mark.asyncio
 async def test_parcel_lookup_requires_address(client):
-    response = await client.get("/api/parcels")
+    response = await client.get("/parcels")
     assert response.status_code == 422

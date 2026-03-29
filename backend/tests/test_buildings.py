@@ -39,7 +39,7 @@ async def test_buildings_success(client):
         )
     )
     response = await client.get(
-        "/api/buildings",
+        "/buildings",
         params={"xmin": -122.71, "ymin": 42.19, "xmax": -122.70, "ymax": 42.20},
     )
     assert response.status_code == 200
@@ -59,7 +59,7 @@ async def test_buildings_no_results(client):
         )
     )
     response = await client.get(
-        "/api/buildings",
+        "/buildings",
         params={"xmin": -122.71, "ymin": 42.19, "xmax": -122.70, "ymax": 42.20},
     )
     assert response.status_code == 200
@@ -87,7 +87,7 @@ async def test_buildings_pagination(client):
         ),
     ]
     response = await client.get(
-        "/api/buildings",
+        "/buildings",
         params={"xmin": -122.71, "ymin": 42.19, "xmax": -122.70, "ymax": 42.20},
     )
     assert response.status_code == 200
@@ -102,7 +102,7 @@ async def test_buildings_gis_failure(client):
         return_value=httpx.Response(502, text="Bad Gateway")
     )
     response = await client.get(
-        "/api/buildings",
+        "/buildings",
         params={"xmin": -122.71, "ymin": 42.19, "xmax": -122.70, "ymax": 42.20},
     )
     assert response.status_code == 503
@@ -111,5 +111,5 @@ async def test_buildings_gis_failure(client):
 
 @pytest.mark.asyncio
 async def test_buildings_requires_bbox(client):
-    response = await client.get("/api/buildings")
+    response = await client.get("/buildings")
     assert response.status_code == 422
