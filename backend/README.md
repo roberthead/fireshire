@@ -1,4 +1,4 @@
-# Fireshire Backend
+# FireShire Backend
 
 FastAPI backend for the fire-resilient landscaping zone visualizer.
 

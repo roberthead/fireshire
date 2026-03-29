@@ -1,4 +1,4 @@
-# Fireshire Frontend
+# FireShire Frontend
 
 React frontend for the fire-resilient landscaping zone visualizer.
 
