@@ -18,22 +18,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Framework:** React with TanStack (Router, Query)
 - **Build:** Vite
 - **Tests:** Vitest
-- **Map:** Mapbox GL JS (satellite basemap) with Leaflet as fallback
+- **Map:** Mapbox GL JS (satellite basemap)
 - **Geometry:** Turf.js for client-side buffer/difference operations on building polygons
 
 ### Data Source — Ashland GIS (ArcGIS Enterprise)
-All spatial data comes from the City of Ashland's public ArcGIS REST services at `gis.ashland.or.us`. No authentication required.
+All spatial data comes from the City of Ashland's public ArcGIS REST services at `gis.ashland.or.us`. No authentication required. Both endpoints return Esri JSON (`f=json`); the backend converts to GeoJSON.
 
-- **Taxlots FeatureServer** — address lookup, parcel boundaries: `/arcgis/rest/services/taxlots/FeatureServer/0/query` (supports `f=geojson`)
-- **Buildings MapServer** — building footprints: `/arcgis/rest/services/buildings/MapServer/0/query` (**only supports `f=json`** — Esri JSON, not GeoJSON; backend converts to GeoJSON)
+- **Taxlots FeatureServer** — address lookup, parcel boundaries: `/arcgis/rest/services/taxlots/FeatureServer/0/query`
+- **Buildings MapServer** — building footprints: `/arcgis/rest/services/buildings/MapServer/0/query`
 - **Mapbox GL JS** — satellite basemap rendering (requires public token via `VITE_MAPBOX_TOKEN`)
 
 ### Ashland GIS Query Notes
-- **MapServer vs FeatureServer matters:** FeatureServers support `f=geojson`, MapServers often don't. ArcGIS silently returns empty data (no error) for unsupported output formats — always test with `f=json` first when debugging.
-- Native projection is WKID 2270 (NAD 1983 State Plane Oregon South, feet) — use `outSR=4326` or `outSR=3857` to avoid client-side reprojection
-- The `inSR` parameter is needed when sending WGS84 coordinates to a service whose native SR is not 4326
+- Both endpoints use `f=json` (Esri JSON). ArcGIS silently returns empty data for unsupported output formats — always test with `f=json` first when debugging.
+- Native projection is WKID 2270 (NAD 1983 State Plane Oregon South, feet) — use `outSR=4326` and `inSR=4326` to avoid reprojection
 - Max 2,000 records per query (paginate with `resultOffset` / `resultRecordCount`)
 - Spatial queries use `geometryType`, `geometry`, and `spatialRel` params
+
+### Deployment — Vercel Services
+- Deployed via Vercel Services (`experimentalServices` in `vercel.json`): frontend at `/`, backend at `/api`
+- Framework Preset must be set to **Services** in the Vercel dashboard
+- Vercel strips the `/api` routePrefix before forwarding to FastAPI — routers have no prefix
+- Frontend env var `VITE_MAPBOX_TOKEN` must be set in Vercel project settings
+- DB dependencies (sqlalchemy, asyncpg, alembic) are optional (`[project.optional-dependencies.db]`) — the deployed API only proxies to Ashland GIS, no database needed
+- For local dev, the Vite proxy rewrites `/api/*` → `/*` to match the prefix-less backend routes
 
 ## Development Commands
 
@@ -61,7 +68,7 @@ npm run lint                      # lint
 
 ## Data Flow
 
-Address input → Backend queries Taxlots FeatureServer for parcel polygon + centroid → Backend queries Buildings MapServer (spatial query within parcel bbox + buffer) → Frontend computes Turf.js buffer at 5/10/30/100 ft with ring differencing → Mapbox GL JS overlay on satellite basemap.
+Address input → Backend queries Taxlots FeatureServer for parcel polygon + centroid → Backend queries Buildings MapServer (spatial query within parcel bbox + 30ft buffer) → Frontend computes Turf.js buffer at 5/10/30/100 ft with ring differencing → Mapbox GL JS overlay on satellite basemap.
 
 ## Zone Model
 
@@ -82,12 +89,6 @@ Buffer each building polygon independently, then `turf.union` same-zone rings to
 - Consider Web Workers for Turf.js buffer/difference on parcels with many structures
 
 ## Accumulated Learnings
-
-### ArcGIS / GIS
-- MapServer vs FeatureServer matters: FeatureServers support `f=geojson`, MapServers often only support `f=json` (Esri JSON)
-- ArcGIS doesn't error on unsupported output formats — it silently returns empty data
-- Always test with `f=json` first when debugging ArcGIS REST endpoints
-- The `inSR` parameter is needed when sending WGS84 coordinates to a service whose native SR is not 4326 (Ashland uses WKID 2270)
 
 ### Mapbox GL JS
 - `map.setLayoutProperty(layerId, 'visibility', 'visible'|'none')` is the correct approach for toggling layers — preserves layer ordering and is performant
