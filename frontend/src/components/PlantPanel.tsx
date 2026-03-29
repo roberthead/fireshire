@@ -91,7 +91,7 @@ export function PlantPanel({ address, zones, onClose }: PlantPanelProps) {
           marginBottom: '0.5rem',
         }}
       >
-        <div />
+        <h2 style={{ margin: 0, fontSize: 'var(--font-size-lg)', fontWeight: 600, color: '#fff' }}>Find Plants</h2>
         <button
           onClick={onClose}
           aria-label="Close plant panel"
