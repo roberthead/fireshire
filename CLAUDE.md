@@ -106,6 +106,8 @@ Buffer each building polygon independently, then `turf.union` same-zone rings to
 - For `matchMedia` initialization, use a lazy `useState` initializer instead of setting state in a `useEffect` (avoids `react-hooks/set-state-in-effect` lint rule)
 - `min-width: 0` on flex search inputs prevents overflow on narrow viewports (flex items don't shrink below content size by default)
 - `turf.area()` accepts a FeatureCollection directly — no need to iterate individual features
+- Per-building ring differencing is not enough for multi-structure parcels — a cross-building subtraction pass (`turf.difference`) after union is needed so outer zones don't overlap inner zones of neighboring buildings
+- `turf.intersect` returning `null` is the cleanest assertion for "zones don't overlap" in tests
 
 ### LWF Plants API
 - HIZ attribute ID `b908b170-70c9-454d-a2ed-d86f98cb3de1` maps plants to fire zones — always request via `attributeIds` param
