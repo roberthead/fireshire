@@ -87,6 +87,7 @@ export function MapView({ ariaLabel }: { ariaLabel?: string }) {
       data-testid="map-container"
       role="img"
       aria-label={ariaLabel ?? 'Satellite map of Ashland, Oregon'}
+      className="map-container"
       style={{ width: '100%', height: '100%' }}
     />
   )

@@ -189,3 +189,97 @@ body {
   left: var(--space-4);
   z-index: 1;
 }
+
+/* Touch targets — universal (WCAG 2.5.8) */
+.search-input {
+  min-height: 44px;
+}
+
+.search-button {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.search-results__item {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.mapboxgl-ctrl button {
+  min-width: 44px !important;
+  min-height: 44px !important;
+}
+
+/* Responsive: tablets and large phones */
+@media (max-width: 768px) {
+  .app-main {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .overlay-top-left {
+    position: static;
+    padding: var(--space-2) var(--space-3);
+    z-index: 1;
+  }
+
+  .overlay-below-search {
+    position: static;
+    padding: 0 var(--space-3) var(--space-2);
+    top: auto;
+    left: auto;
+  }
+
+  .overlay-bottom-right {
+    position: fixed;
+    bottom: var(--space-3);
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+  }
+
+  .overlay-bottom-left {
+    position: fixed;
+    bottom: calc(var(--space-3) + 60px);
+    left: var(--space-3);
+    z-index: 2;
+    max-width: calc(100vw - var(--space-6));
+  }
+
+  .search-input {
+    width: 100%;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .search-form {
+    width: 100%;
+  }
+
+  .map-container {
+    flex: 1;
+    min-height: 60vh;
+  }
+}
+
+/* Responsive: small phones */
+@media (max-width: 480px) {
+  .app-header {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .app-header__wordmark {
+    font-size: var(--font-size-lg);
+  }
+
+  .search-input {
+    font-size: var(--font-size-sm);
+  }
+
+  .search-button {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-sm);
+  }
+}

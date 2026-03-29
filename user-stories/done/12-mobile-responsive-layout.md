@@ -98,4 +98,9 @@ At 200% zoom on 1280px display → 640px effective CSS width → triggers <= 768
 
 ## Learnings
 
-[to be filled in by Claude after implementation]
+- CSS `@media (max-width: 768px)` is preferable to JS `matchMedia` for layout breakpoints — it works correctly with browser zoom (200% on 1280px = 640px CSS width triggers the breakpoint automatically)
+- Switching overlays from `position: absolute` to `position: static` at the breakpoint lets them flow naturally in the flex column layout without fighting the map
+- The ZoneLegend already had JS-based mobile collapse via `matchMedia` at 480px — the CSS approach at 768px complements rather than conflicts with it since they target different breakpoints
+- 44px minimum touch targets should be universal (not behind a media query) per WCAG 2.5.8 — applied to search input, button, result items, and Mapbox controls
+- `!important` was needed for `.mapboxgl-ctrl button` sizing since Mapbox GL JS applies its own inline styles to control buttons
+- `min-width: 0` on the flex search input prevents it from overflowing its container on narrow viewports (flex items don't shrink below content size by default)
