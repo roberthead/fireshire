@@ -361,6 +361,16 @@ body {
   }
 }
 
+/* Responsive: larger screens */
+@media (min-width: 1024px) {
+  :root {
+    --font-size-sm: 14px;
+    --font-size-base: 16px;
+    --font-size-lg: 20px;
+    --font-size-xl: 26px;
+  }
+}
+
 /* Responsive: small phones */
 @media (max-width: 480px) {
   .app-header {
