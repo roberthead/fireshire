@@ -9,7 +9,8 @@ import { MapView } from '../components/MapView'
 import { MapProvider } from '../contexts/MapContext'
 import { ZoneOverlay } from '../components/ZoneOverlay'
 import { computeZoneRings } from '../lib/computeZoneRings'
-import { fetchBuildings, type Parcel } from '../lib/api'
+import { fetchBuildings, ApiError, type Parcel } from '../lib/api'
+import { StatusBanner } from '../components/StatusBanner'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -32,7 +33,7 @@ function HomePage() {
 
   const bbox = selectedParcel ? bboxFromGeometry(selectedParcel.geometry) : null
 
-  const { data: buildings } = useQuery({
+  const { data: buildings, isFetching: buildingsFetching, error: buildingsError, refetch: refetchBuildings } = useQuery({
     queryKey: ['buildings', bbox],
     queryFn: () => fetchBuildings(bbox!),
     enabled: bbox !== null,
@@ -54,6 +55,30 @@ function HomePage() {
       <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 1 }}>
         <AddressSearch onParcelSelected={setSelectedParcel} />
       </div>
+      {buildingsFetching && selectedParcel && (
+        <div style={{ position: 'absolute', top: '4.5rem', left: '1rem', zIndex: 1 }}>
+          <StatusBanner variant="loading" message="Drawing fire zones..." />
+        </div>
+      )}
+      {buildingsError && selectedParcel && (
+        <div style={{ position: 'absolute', top: '4.5rem', left: '1rem', zIndex: 1 }}>
+          <StatusBanner
+            variant="error"
+            message={buildingsError instanceof ApiError && buildingsError.errorCode === 'gis_unavailable'
+              ? "Ashland's building data source is temporarily unavailable."
+              : buildingsError.message}
+            onRetry={() => refetchBuildings()}
+          />
+        </div>
+      )}
+      {selectedParcel && buildings && buildings.features.length === 0 && !buildingsFetching && (
+        <div style={{ position: 'absolute', top: '4.5rem', left: '1rem', zIndex: 1 }}>
+          <StatusBanner
+            variant="info"
+            message="We found your parcel but no building footprints. Zones are drawn around structures."
+          />
+        </div>
+      )}
       <div style={{ position: 'absolute', bottom: '1rem', right: '1rem', zIndex: 1 }}>
         <ZoneLegend />
       </div>

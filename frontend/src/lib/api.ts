@@ -18,13 +18,35 @@ import type { FeatureCollection, Polygon, MultiPolygon } from 'geojson'
 
 export type BuildingResponse = FeatureCollection<Polygon | MultiPolygon>
 
-export async function fetchParcels(address: string): Promise<ParcelResponse> {
-  const res = await fetch(`/api/parcels?address=${encodeURIComponent(address)}`)
-  if (!res.ok) {
-    const body = await res.json().catch(() => null)
-    throw new Error(body?.detail ?? `Server error (${res.status})`)
+export class ApiError extends Error {
+  status: number
+  errorCode: string | null
+  detail: string
+
+  constructor(status: number, errorCode: string | null, detail: string) {
+    super(detail)
+    this.name = 'ApiError'
+    this.status = status
+    this.errorCode = errorCode
+    this.detail = detail
   }
-  return res.json()
+}
+
+export async function fetchParcels(address: string): Promise<ParcelResponse> {
+  try {
+    const res = await fetch(`/api/parcels?address=${encodeURIComponent(address)}`)
+    if (!res.ok) {
+      const body = await res.json().catch(() => null)
+      throw new ApiError(res.status, body?.error ?? null, body?.detail ?? 'Server error')
+    }
+    return res.json()
+  } catch (err) {
+    if (err instanceof ApiError) throw err
+    if (err instanceof TypeError) {
+      throw new ApiError(0, 'network_error', "We can't reach our server right now. Please check your connection and try again.")
+    }
+    throw err
+  }
 }
 
 export async function fetchBuildings(bbox: {
@@ -39,10 +61,18 @@ export async function fetchBuildings(bbox: {
     xmax: String(bbox.xmax),
     ymax: String(bbox.ymax),
   })
-  const res = await fetch(`/api/buildings?${params}`)
-  if (!res.ok) {
-    const body = await res.json().catch(() => null)
-    throw new Error(body?.detail ?? `Server error (${res.status})`)
+  try {
+    const res = await fetch(`/api/buildings?${params}`)
+    if (!res.ok) {
+      const body = await res.json().catch(() => null)
+      throw new ApiError(res.status, body?.error ?? null, body?.detail ?? 'Server error')
+    }
+    return res.json()
+  } catch (err) {
+    if (err instanceof ApiError) throw err
+    if (err instanceof TypeError) {
+      throw new ApiError(0, 'network_error', "We can't reach our server right now. Please check your connection and try again.")
+    }
+    throw err
   }
-  return res.json()
 }

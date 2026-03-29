@@ -67,6 +67,12 @@ Same pattern in `index.tsx` for the buildings fetch phase with "Drawing fire zon
 - Loading banners: `role="status"` with `aria-live="polite"`
 - Banners rendered conditionally (mount/unmount) so `role="alert"` fires correctly
 
+### Pre-Implementation Notes
+
+- The multi-phase loading `setTimeout` + `setLoadingText` pattern will trigger `react-hooks/set-state-in-effect` lint rule — use eslint-disable comment (legitimate timer pattern).
+- "No parcels found" message already exists in AddressSearch — upgrade it to use StatusBanner.
+- Focus StatusBanner tests on the reusable component itself; keep AddressSearch integration tests lighter.
+
 ### Test Plan
 
 **StatusBanner.test.tsx:**
@@ -85,4 +91,8 @@ Same pattern in `index.tsx` for the buildings fetch phase with "Drawing fire zon
 
 ## Learnings
 
-[to be filled in by Claude after implementation]
+- `@testing-library/user-event` is not installed in this project — use `fireEvent` from `@testing-library/react` instead for click interactions in tests
+- TanStack Query's `refetch()` is the cleanest way to implement retry buttons — no need to toggle state or use `requestAnimationFrame` hacks
+- Injecting CSS `@keyframes` via a module-level flag + `document.createElement('style')` is a pragmatic way to get spinner animations with inline-style-only components
+- The `ApiError` class with `errorCode` field enables variant-specific messages in the UI (e.g., `gis_unavailable` vs `network_error`) without string-matching on error messages
+- Adding `!error` guard to the "no parcels" condition prevents showing both error and warning banners simultaneously

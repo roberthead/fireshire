@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect, useRef, type FormEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { fetchParcels, type Parcel } from '../lib/api'
+import { fetchParcels, ApiError, type Parcel } from '../lib/api'
 import { useMapContext } from '../hooks/useMapContext'
+import { StatusBanner } from './StatusBanner'
 
 function showParcelOnMap(map: mapboxgl.Map, parcel: Parcel) {
   if (!parcel.centroid) return
@@ -37,7 +38,7 @@ export function AddressSearch({
   const { map } = useMapContext()
   const autoSelectedRef = useRef('')
 
-  const { data, isFetching, error } = useQuery({
+  const { data, isFetching, error, refetch } = useQuery({
     queryKey: ['parcels', searchAddress],
     queryFn: () => fetchParcels(searchAddress),
     enabled: searchAddress.length > 0,
@@ -98,14 +99,25 @@ export function AddressSearch({
       </form>
 
       {error && (
-        <div role="alert" style={{ color: '#991b1b', background: '#fef2f2', padding: '0.5rem', marginTop: '0.5rem', borderRadius: '4px', fontSize: '0.85rem' }}>
-          {error.message}
+        <div style={{ marginTop: '0.5rem' }}>
+          <StatusBanner
+            variant="error"
+            message={error instanceof ApiError && error.errorCode === 'gis_unavailable'
+              ? "Ashland's property data source is temporarily unavailable. Please try again shortly."
+              : error instanceof ApiError && error.errorCode === 'network_error'
+                ? error.detail
+                : error.message}
+            onRetry={() => refetch()}
+          />
         </div>
       )}
 
-      {!isFetching && searchAddress.length > 0 && parcels.length === 0 && (
-        <div role="alert" style={{ background: '#fffbeb', padding: '0.5rem', marginTop: '0.5rem', borderRadius: '4px', fontSize: '0.85rem' }}>
-          No parcels found for that address. Try a different Ashland address.
+      {!isFetching && !error && searchAddress.length > 0 && parcels.length === 0 && (
+        <div style={{ marginTop: '0.5rem' }}>
+          <StatusBanner
+            variant="warning"
+            message="We couldn't find that address in Ashland. This tool only covers properties within Ashland city limits."
+          />
         </div>
       )}
 
