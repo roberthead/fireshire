@@ -1,23 +1,52 @@
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { AddressSearch } from '../components/AddressSearch'
 import { ZoneLegend } from '../components/ZoneLegend'
+import { MapView } from '../components/MapView'
+import { MapProvider } from '../contexts/MapContext'
+import { ZoneOverlay } from '../components/ZoneOverlay'
+import { fetchBuildings, type Parcel } from '../lib/api'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
 })
 
+function bboxFromGeometry(geometry: Parcel['geometry']) {
+  const coords = geometry.coordinates[0]
+  let xmin = Infinity, ymin = Infinity, xmax = -Infinity, ymax = -Infinity
+  for (const [lng, lat] of coords) {
+    if (lng < xmin) xmin = lng
+    if (lat < ymin) ymin = lat
+    if (lng > xmax) xmax = lng
+    if (lat > ymax) ymax = lat
+  }
+  return { xmin, ymin, xmax, ymax }
+}
+
 function HomePage() {
+  const [selectedParcel, setSelectedParcel] = useState<Parcel | null>(null)
+
+  const bbox = selectedParcel ? bboxFromGeometry(selectedParcel.geometry) : null
+
+  const { data: buildings } = useQuery({
+    queryKey: ['buildings', bbox],
+    queryFn: () => fetchBuildings(bbox!),
+    enabled: bbox !== null,
+  })
+
   return (
-    <>
+    <MapProvider>
       <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 1 }}>
-        <AddressSearch />
+        <AddressSearch onParcelSelected={setSelectedParcel} />
       </div>
       <div style={{ position: 'absolute', bottom: '1rem', right: '1rem', zIndex: 1 }}>
         <ZoneLegend />
       </div>
-      <div style={{ width: '100%', height: '100%', background: '#e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ color: '#666' }}>Map will render here</span>
-      </div>
-    </>
+      <MapView />
+      {buildings && buildings.features.length > 0 && (
+        <ZoneOverlay buildings={buildings} />
+      )}
+    </MapProvider>
   )
 }
