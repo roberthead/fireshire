@@ -36,6 +36,9 @@ All spatial data comes from the City of Ashland's public ArcGIS REST services at
 ## Development Commands
 
 ```bash
+# Full validation (tests, types, lint for both backend and frontend)
+./scripts/validate.sh
+
 # Start PostgreSQL (requires Docker Desktop running)
 docker compose up -d
 
@@ -45,6 +48,13 @@ poetry run pytest -v              # run tests
 poetry run uvicorn app.main:app --reload  # dev server on :8000
 poetry run alembic upgrade head   # run migrations
 poetry run alembic revision --autogenerate -m "description"  # create migration
+
+# Frontend (from frontend/)
+npm install                       # install dependencies
+npm run dev                       # dev server on :5173
+npm test                          # run tests
+npx tsc -b                        # type-check
+npm run lint                      # lint
 ```
 
 ## Data Flow
