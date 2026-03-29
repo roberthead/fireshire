@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_USER: fireshire
+      POSTGRES_PASSWORD: fireshire
+      POSTGRES_DB: fireshire
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  db-test:
+    image: postgres:16-alpine
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_USER: fireshire
+      POSTGRES_PASSWORD: fireshire
+      POSTGRES_DB: fireshire_test
+
+volumes:
+  pgdata:

@@ -33,6 +33,20 @@ All spatial data comes from the City of Ashland's public ArcGIS REST services at
 - Max 2,000 records per query (paginate with `resultOffset` / `resultRecordCount`)
 - Spatial queries use `geometryType`, `geometry`, and `spatialRel` params
 
+## Development Commands
+
+```bash
+# Start PostgreSQL (requires Docker Desktop running)
+docker compose up -d
+
+# Backend (from backend/)
+poetry install                    # install dependencies
+poetry run pytest -v              # run tests
+poetry run uvicorn app.main:app --reload  # dev server on :8000
+poetry run alembic upgrade head   # run migrations
+poetry run alembic revision --autogenerate -m "description"  # create migration
+```
+
 ## Data Flow
 
 Address input → Backend queries Taxlots FeatureServer for parcel polygon + centroid → Backend queries Buildings MapServer (spatial query within parcel bbox + buffer) → Frontend computes Turf.js buffer at 5/10/30/100 ft with ring differencing → Mapbox GL JS overlay on satellite basemap.
