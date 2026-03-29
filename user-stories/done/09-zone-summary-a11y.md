@@ -66,4 +66,8 @@ SO THAT I receive the same actionable information without needing to interpret t
 
 ## Learnings
 
-[to be filled in by Claude after implementation]
+- `screen.getByText(/address/)` fails when the same text appears in both visible content and an `aria-live` region — use a more specific matcher like `getByText(/Property: address/)` to disambiguate
+- `turf.area()` accepts a FeatureCollection directly (not just individual features), making zone area computation straightforward
+- Memoizing `computeZoneRings` in the parent route avoids recomputing zones on every render — the result feeds both `ZoneOverlay` and `ZoneSummary`
+- The visually-hidden pattern (`position: absolute, width: 1, height: 1, clip: rect(0,0,0,0)`) works well for `aria-live` announcements without affecting layout
+- Adding `role="img"` + `aria-label` to the map container is a minimal change that makes the map meaningful to screen readers

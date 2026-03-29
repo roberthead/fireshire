@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import type { FeatureCollection, Polygon, MultiPolygon } from 'geojson'
 import { AddressSearch } from '../components/AddressSearch'
 import { ZoneLegend } from '../components/ZoneLegend'
+import { ZoneSummary } from '../components/ZoneSummary'
 import { MapView } from '../components/MapView'
 import { MapProvider } from '../contexts/MapContext'
 import { ZoneOverlay } from '../components/ZoneOverlay'
+import { computeZoneRings } from '../lib/computeZoneRings'
 import { fetchBuildings, type Parcel } from '../lib/api'
 
 export const Route = createFileRoute('/')({
@@ -35,6 +38,17 @@ function HomePage() {
     enabled: bbox !== null,
   })
 
+  const hasBuildings = buildings && buildings.features.length > 0
+
+  const zones = useMemo(() => {
+    if (!hasBuildings) return null
+    return computeZoneRings(buildings as FeatureCollection<Polygon | MultiPolygon>)
+  }, [buildings, hasBuildings])
+
+  const mapAriaLabel = selectedParcel && hasBuildings
+    ? `Satellite map of ${selectedParcel.address} showing ${buildings.features.length} building${buildings.features.length === 1 ? '' : 's'} with 4 fire-resilient landscaping zones`
+    : undefined
+
   return (
     <MapProvider>
       <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 1 }}>
@@ -43,8 +57,17 @@ function HomePage() {
       <div style={{ position: 'absolute', bottom: '1rem', right: '1rem', zIndex: 1 }}>
         <ZoneLegend />
       </div>
-      <MapView />
-      {buildings && buildings.features.length > 0 && (
+      {selectedParcel && zones && hasBuildings && (
+        <div style={{ position: 'absolute', bottom: '1rem', left: '1rem', zIndex: 1 }}>
+          <ZoneSummary
+            address={selectedParcel.address}
+            buildingCount={buildings.features.length}
+            zones={zones}
+          />
+        </div>
+      )}
+      <MapView ariaLabel={mapAriaLabel} />
+      {hasBuildings && (
         <ZoneOverlay buildings={buildings} />
       )}
     </MapProvider>

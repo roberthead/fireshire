@@ -6,7 +6,7 @@ import { useMapContext } from '../hooks/useMapContext'
 const ASHLAND_CENTER: [number, number] = [-122.71, 42.19]
 const DEFAULT_ZOOM = 15
 
-export function MapView() {
+export function MapView({ ariaLabel }: { ariaLabel?: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const { setMap } = useMapContext()
@@ -85,6 +85,8 @@ export function MapView() {
     <div
       ref={containerRef}
       data-testid="map-container"
+      role="img"
+      aria-label={ariaLabel ?? 'Satellite map of Ashland, Oregon'}
       style={{ width: '100%', height: '100%' }}
     />
   )

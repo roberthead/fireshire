@@ -85,4 +85,23 @@ describe('MapView', () => {
     unmount()
     expect(mockRemove).toHaveBeenCalled()
   })
+
+  it('map container has role="img" with default aria-label', () => {
+    vi.stubEnv('VITE_MAPBOX_TOKEN', 'pk.test_token_123')
+    renderMapView()
+    const container = screen.getByTestId('map-container')
+    expect(container).toHaveAttribute('role', 'img')
+    expect(container).toHaveAttribute('aria-label', 'Satellite map of Ashland, Oregon')
+  })
+
+  it('uses custom aria-label when provided', () => {
+    vi.stubEnv('VITE_MAPBOX_TOKEN', 'pk.test_token_123')
+    render(
+      <MapProvider>
+        <MapView ariaLabel="Satellite map of 455 Siskiyou Blvd showing 2 buildings with 4 fire-resilient landscaping zones" />
+      </MapProvider>
+    )
+    const container = screen.getByTestId('map-container')
+    expect(container).toHaveAttribute('aria-label', 'Satellite map of 455 Siskiyou Blvd showing 2 buildings with 4 fire-resilient landscaping zones')
+  })
 })
