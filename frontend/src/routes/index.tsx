@@ -31,11 +31,11 @@ function bboxFromGeometry(geometry: Parcel['geometry']) {
   return { xmin, ymin, xmax, ymax }
 }
 
-function PlantPanelConnector({ onClose }: { onClose: () => void }) {
+function PlantPanelConnector({ address, onClose }: { address?: string; onClose: () => void }) {
   const { zoneVisibility } = useMapContext()
   const zones = activeZoneDisplayNames(zoneVisibility)
   if (zones.length === 0) return null
-  return <PlantPanel zones={zones} onClose={onClose} />
+  return <PlantPanel address={address} zones={zones} onClose={onClose} />
 }
 
 function HomePage() {
@@ -104,7 +104,7 @@ function HomePage() {
       )}
       {selectedParcel && hasBuildings && plantPanelOpen && (
         <div className="overlay-right">
-          <PlantPanelConnector onClose={() => setPlantPanelOpen(false)} />
+          <PlantPanelConnector address={selectedParcel?.address} onClose={() => setPlantPanelOpen(false)} />
         </div>
       )}
       <MapView ariaLabel={mapAriaLabel} />

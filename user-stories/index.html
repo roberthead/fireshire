@@ -69,10 +69,9 @@
 <script>
 const stories = {
   backlog: [],
-  current: [
-    { id: '15', title: 'Fire-Resilient Landscaping Chatbot', summary: 'Chat panel with Claude API for personalized plant and defensible space guidance, streaming SSE responses with property context', size: 'L', priority: 'P2' },
-  ],
+  current: [],
   done: [
+    { id: '15', title: 'Fire-Resilient Landscaping Chatbot', summary: 'Chat panel with Claude API for personalized plant and defensible space guidance, streaming SSE responses with property context', size: 'L', priority: 'P2' },
     { id: '14', title: 'Filter Plant List by Search', summary: 'Client-side text search across all plant fields with "Y of X" count display, null-safe field handling', size: 'S', priority: 'P2' },
     { id: '13', title: 'Query Plants Database', summary: 'Right-side panel listing fire-resilient plants filtered by active Home Ignition Zones via LWF API proxy', size: 'L', priority: 'P1' },
     { id: 'BUG', title: 'Fix Buildings Query + Zone Rendering', summary: 'MapServer needs f=json not f=geojson; Esri→GeoJSON conversion; ZoneOverlay ref guard fix; 30ft search buffer', size: 'S', priority: 'P1' },

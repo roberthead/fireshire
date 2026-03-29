@@ -240,4 +240,8 @@ The system prompt is assembled from two parts:
 
 ## Learnings
 
-[to be filled in by Claude after implementation]
+- **Anthropic SDK `messages.stream()` is lazy** — it returns a context manager; the actual HTTP request fires in `__aenter__`, not when `.stream()` is called. Wrapping `.stream()` in try/except doesn't catch auth/connection errors. Handle all errors inside the `async with` block instead.
+- **uvicorn's `.env` loading timing is unreliable** — module-level code that reads env vars (like `AsyncAnthropic()` auto-reading `ANTHROPIC_API_KEY`) may run before uvicorn loads `.env`. Fix: explicitly `load_dotenv()` and pass `api_key=` to the constructor.
+- **SSE errors after headers are sent can't become HTTP status codes** — once `StreamingResponse` starts, FastAPI exception handlers can't change the status code. Use sentinel SSE events (`data: [ERROR] ...`) and handle them on the frontend by throwing an `ApiError`.
+- **`TypeError` from the Anthropic SDK** — missing API key raises `TypeError` (not `anthropic.APIError`), so catch both in the generator.
+- **Tab-within-panel is simpler than a separate panel** — adding `activeTab` state to PlantPanel avoids changes to the page layout, route file, and overlay positioning. The chat component just needs to fill available space with `flex: 1`.

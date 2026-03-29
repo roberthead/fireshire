@@ -115,6 +115,12 @@ Buffer each building polygon independently, then `turf.union` same-zone rings to
 - When proxying a non-GIS upstream, create a separate httpx client with its own error type to keep error handling clean
 - Connector pattern (small wrapper calling `useMapContext()` that passes data as props) keeps pure components testable without mocking context
 
+### Anthropic SDK / Chat
+- `messages.stream()` is lazy — the HTTP request fires in `__aenter__`, not when `.stream()` is called. Handle errors inside `async with`, not around the `.stream()` call.
+- uvicorn's `.env` loading can run after module-level code — explicitly `load_dotenv()` and pass `api_key=` to `AsyncAnthropic()` instead of relying on auto-detection
+- Once `StreamingResponse` headers are sent, FastAPI can't change the status code — use `data: [ERROR] ...` SSE sentinel events for mid-stream errors
+- Missing `ANTHROPIC_API_KEY` raises `TypeError` (not `anthropic.APIError`) — catch both
+
 ### CSS / Design
 - Dark frosted glass (`rgba(0,0,0,0.55)` + `backdrop-filter: blur`) reads better over satellite imagery than light/white glass
 - CSS `@media (max-width: 768px)` is preferable to JS `matchMedia` for layout breakpoints — works correctly with browser zoom

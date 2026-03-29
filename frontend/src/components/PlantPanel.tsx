@@ -3,8 +3,10 @@ import { useQuery } from '@tanstack/react-query'
 import { fetchPlants, ApiError, type Plant } from '../lib/api'
 import { plantMatchesSearch } from '../lib/plantSearch'
 import { StatusBanner } from './StatusBanner'
+import { ChatPanel } from './ChatPanel'
 
 export interface PlantPanelProps {
+  address?: string
   zones: string[]
   onClose: () => void
 }
@@ -28,7 +30,9 @@ function badgeColor(zone: string): string {
   return zone === '10-30' ? '#000' : '#fff'
 }
 
-export function PlantPanel({ zones, onClose }: PlantPanelProps) {
+export function PlantPanel({ address, zones, onClose }: PlantPanelProps) {
+  const [activeTab, setActiveTab] = useState<'plants' | 'chat'>('plants')
+
   const {
     data,
     isFetching,
@@ -89,7 +93,7 @@ export function PlantPanel({ zones, onClose }: PlantPanelProps) {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <strong style={{ fontSize: '0.85rem', color: '#fff' }}>Plants</strong>
-          {filteredPlants.length > 0 && (
+          {filteredPlants.length > 0 && activeTab === 'plants' && (
             <span
               style={{
                 fontSize: '0.65rem',
@@ -127,143 +131,198 @@ export function PlantPanel({ zones, onClose }: PlantPanelProps) {
         </button>
       </div>
 
-      <input
-        type="search"
-        placeholder="Search plants..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        style={{
-          width: '100%',
-          padding: '0.4rem 0.6rem',
-          marginBottom: '0.5rem',
-          background: 'rgba(255,255,255,0.1)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          borderRadius: 4,
-          color: '#e2e8f0',
-          fontSize: '0.8rem',
-          outline: 'none',
-        }}
-      />
-
-      {/* Body */}
+      {/* Tabs */}
       <div
         style={{
-          maxHeight: '50vh',
-          overflowY: 'auto',
-          margin: '0 -0.75rem',
-          padding: '0 0.75rem',
+          display: 'flex',
+          gap: 0,
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          marginBottom: '0.5rem',
         }}
       >
-        {searchedPlants.length === 0 && (
-          <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-            {searchQuery
-              ? 'No plants match your search.'
-              : 'No plants recommended for the active zones.'}
-          </p>
-        )}
-
-        {searchedPlants.map((plant, i) => {
-          const plantZones = getPlantZones(plant).filter((z) => zones.includes(z))
-          return (
-            <div
-              key={plant.id}
-              style={{
-                display: 'flex',
-                gap: '0.5rem',
-                padding: '0.5rem 0',
-                borderBottom:
-                  i < searchedPlants.length - 1
-                    ? '1px solid rgba(255,255,255,0.08)'
-                    : 'none',
-              }}
-            >
-              {/* Thumbnail */}
-              {plant.primaryImage ? (
-                <img
-                  src={plant.primaryImage.url}
-                  alt={plant.commonName || 'Plant'}
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 4,
-                    objectFit: 'cover',
-                    flexShrink: 0,
-                  }}
-                />
-              ) : (
-                <div
-                  style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 4,
-                    background: 'rgba(255,255,255,0.1)',
-                    flexShrink: 0,
-                  }}
-                />
-              )}
-
-              {/* Text */}
-              <div style={{ minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: '0.8rem',
-                    fontWeight: 600,
-                    color: 'var(--color-text)',
-                  }}
-                >
-                  {plant.commonName || 'Unknown'}
-                </div>
-                <div
-                  style={{
-                    fontSize: '0.7rem',
-                    fontStyle: 'italic',
-                    color: 'var(--color-text-muted)',
-                  }}
-                >
-                  {plant.genus ?? ''} {plant.species ?? ''}
-                </div>
-                {/* Zone badges */}
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    gap: 4,
-                    marginTop: 4,
-                  }}
-                >
-                  {plantZones.map((z) => (
-                    <span
-                      key={z}
-                      style={{
-                        padding: '1px 6px',
-                        borderRadius: 3,
-                        fontSize: '0.65rem',
-                        fontWeight: 600,
-                        background: ZONE_COLORS[z] ?? 'rgba(255,255,255,0.15)',
-                        color: badgeColor(z),
-                      }}
-                    >
-                      {z} ft
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Pagination info */}
-      {data && data.meta.pagination.hasMore && (
-        <p
+        <button
+          onClick={() => setActiveTab('plants')}
           style={{
-            fontSize: '0.7rem',
-            color: '#94a3b8',
-            marginTop: '0.5rem',
-            textAlign: 'center',
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'plants'
+              ? '2px solid var(--color-fire, #E8652B)'
+              : '2px solid transparent',
+            color: activeTab === 'plants'
+              ? '#fff'
+              : 'var(--color-text-muted, #94a3b8)',
+            padding: '0.5rem 1rem',
+            cursor: 'pointer',
+            fontSize: '0.85rem',
+            minHeight: 44,
           }}
         >
-          Showing {searchedPlants.length} of {data.meta.pagination.total} plants
-        </p>
+          Plants
+        </button>
+        <button
+          onClick={() => setActiveTab('chat')}
+          style={{
+            background: 'none',
+            border: 'none',
+            borderBottom: activeTab === 'chat'
+              ? '2px solid var(--color-fire, #E8652B)'
+              : '2px solid transparent',
+            color: activeTab === 'chat'
+              ? '#fff'
+              : 'var(--color-text-muted, #94a3b8)',
+            padding: '0.5rem 1rem',
+            cursor: 'pointer',
+            fontSize: '0.85rem',
+            minHeight: 44,
+          }}
+        >
+          Chat
+        </button>
+      </div>
+
+      {activeTab === 'chat' ? (
+        <ChatPanel address={address} zones={zones} plants={filteredPlants} />
+      ) : (
+        <>
+          <input
+            type="search"
+            placeholder="Search plants..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.4rem 0.6rem',
+              marginBottom: '0.5rem',
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: 4,
+              color: '#e2e8f0',
+              fontSize: '0.8rem',
+              outline: 'none',
+            }}
+          />
+
+          {/* Body */}
+          <div
+            style={{
+              maxHeight: '50vh',
+              overflowY: 'auto',
+              margin: '0 -0.75rem',
+              padding: '0 0.75rem',
+            }}
+          >
+            {searchedPlants.length === 0 && (
+              <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                {searchQuery
+                  ? 'No plants match your search.'
+                  : 'No plants recommended for the active zones.'}
+              </p>
+            )}
+
+            {searchedPlants.map((plant, i) => {
+              const plantZones = getPlantZones(plant).filter((z) => zones.includes(z))
+              return (
+                <div
+                  key={plant.id}
+                  style={{
+                    display: 'flex',
+                    gap: '0.5rem',
+                    padding: '0.5rem 0',
+                    borderBottom:
+                      i < searchedPlants.length - 1
+                        ? '1px solid rgba(255,255,255,0.08)'
+                        : 'none',
+                  }}
+                >
+                  {/* Thumbnail */}
+                  {plant.primaryImage ? (
+                    <img
+                      src={plant.primaryImage.url}
+                      alt={plant.commonName || 'Plant'}
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 4,
+                        objectFit: 'cover',
+                        flexShrink: 0,
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: 48,
+                        height: 48,
+                        borderRadius: 4,
+                        background: 'rgba(255,255,255,0.1)',
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+
+                  {/* Text */}
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        color: 'var(--color-text)',
+                      }}
+                    >
+                      {plant.commonName || 'Unknown'}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: '0.7rem',
+                        fontStyle: 'italic',
+                        color: 'var(--color-text-muted)',
+                      }}
+                    >
+                      {plant.genus ?? ''} {plant.species ?? ''}
+                    </div>
+                    {/* Zone badges */}
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        gap: 4,
+                        marginTop: 4,
+                      }}
+                    >
+                      {plantZones.map((z) => (
+                        <span
+                          key={z}
+                          style={{
+                            padding: '1px 6px',
+                            borderRadius: 3,
+                            fontSize: '0.65rem',
+                            fontWeight: 600,
+                            background: ZONE_COLORS[z] ?? 'rgba(255,255,255,0.15)',
+                            color: badgeColor(z),
+                          }}
+                        >
+                          {z} ft
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Pagination info */}
+          {data && data.meta.pagination.hasMore && (
+            <p
+              style={{
+                fontSize: '0.7rem',
+                color: '#94a3b8',
+                marginTop: '0.5rem',
+                textAlign: 'center',
+              }}
+            >
+              Showing {searchedPlants.length} of {data.meta.pagination.total} plants
+            </p>
+          )}
+        </>
       )}
     </div>
   )
