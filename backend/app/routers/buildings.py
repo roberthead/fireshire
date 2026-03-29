@@ -10,7 +10,7 @@ BUILDING_FIELDS = "OBJECTID,Bldg_name,BLDG_CLASS,ELEVATION,Floors,YR_BLT,SqFT,OC
 
 # 100 feet in degrees (approximate at Ashland's latitude ~42N)
 # 1 degree lat ≈ 364,000 ft, 1 degree lng ≈ 271,000 ft at 42N
-BUFFER_FT = 30
+BUFFER_FT = 10
 LAT_BUFFER = BUFFER_FT / 364_000
 LNG_BUFFER = BUFFER_FT / 271_000
 

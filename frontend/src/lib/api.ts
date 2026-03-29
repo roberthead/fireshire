@@ -111,13 +111,9 @@ export interface PlantResponse {
 export async function fetchPlants(
   zones: string[],
   search?: string,
-  limit = 50,
-  offset = 0,
 ): Promise<PlantResponse> {
   const params = new URLSearchParams({
     zones: zones.join(','),
-    limit: String(limit),
-    offset: String(offset),
   })
   if (search) {
     params.set('search', search)
