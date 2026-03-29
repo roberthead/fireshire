@@ -22,25 +22,26 @@ style: |
   a {
     color: var(--color-shire);
   }
-  table {
-    color: #e2e8f0;
-    background: transparent;
-    border-collapse: collapse;
-  }
-  th, td {
-    border: 1px solid rgba(255,255,255,0.15);
-    background: transparent;
+  table, thead, tbody, tr, th, td {
+    background: transparent !important;
+    color: #e2e8f0 !important;
+    border-color: rgba(255,255,255,0.15) !important;
   }
   th {
-    background: rgba(255,255,255,0.1);
-    color: #fff;
+    background: rgba(255,255,255,0.1) !important;
+    color: #fff !important;
   }
   code {
     background: rgba(255,255,255,0.08);
     color: var(--color-shire);
   }
+  pre {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
   pre code {
-    color: #e2e8f0;
+    background: transparent !important;
+    color: #e2e8f0 !important;
   }
   section::after {
     color: #94a3b8;
@@ -109,16 +110,8 @@ No authentication required for city data. All public.
       |
   +---+---+
   |       |
-Taxlots  Buildings
-(ArcGIS) (ArcGIS)
-  |       |
-  +---+---+
-      |
- React Frontend
-      |
-  +---+---+---+
-  |   |   |   |
- Map Zones Plants Chat
+Taxlots  Buildings        React Frontend
+(ArcGIS) (ArcGIS)   -->   Map | Zones | Plants | Chat
 ```
 
 - **Backend**: Python / FastAPI -- proxies Ashland GIS queries
