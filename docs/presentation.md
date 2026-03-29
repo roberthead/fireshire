@@ -1,11 +1,53 @@
 ---
 marp: true
-theme: uncover
-class: invert
+theme: default
 paginate: true
+style: |
+  :root {
+    --color-fire: #4CAF50;
+    --color-shire: #A37ACC;
+    --color-charcoal: #1B2028;
+  }
+  section {
+    background: var(--color-charcoal);
+    color: #e2e8f0;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  h1, h2, h3 {
+    color: #fff;
+  }
+  strong {
+    color: var(--color-fire);
+  }
+  a {
+    color: var(--color-shire);
+  }
+  table {
+    color: #e2e8f0;
+    background: transparent;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid rgba(255,255,255,0.15);
+    background: transparent;
+  }
+  th {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  code {
+    background: rgba(255,255,255,0.08);
+    color: var(--color-shire);
+  }
+  pre code {
+    color: #e2e8f0;
+  }
+  section::after {
+    color: #94a3b8;
+  }
 ---
 
-# FireShire
+# <span style="color:#4CAF50">Fire</span><span style="color:#A37ACC">Shire</span>
 
 ### Fire-Resilient Landscaping Zone Visualizer
 
@@ -111,4 +153,4 @@ Taxlots  Buildings
 
 ## Live Demo
 
-**fireshire.vercel.app**
+### <span style="color:#4CAF50">fire</span><span style="color:#A37ACC">shire</span>.vercel.app
