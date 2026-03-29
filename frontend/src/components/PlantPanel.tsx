@@ -91,25 +91,7 @@ export function PlantPanel({ address, zones, onClose }: PlantPanelProps) {
           marginBottom: '0.5rem',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <strong style={{ fontSize: '0.85rem', color: '#fff' }}>Plants</strong>
-          {filteredPlants.length > 0 && activeTab === 'plants' && (
-            <span
-              style={{
-                fontSize: '0.65rem',
-                fontWeight: 600,
-                background: 'rgba(255,255,255,0.15)',
-                color: '#e2e8f0',
-                padding: '1px 6px',
-                borderRadius: 3,
-              }}
-            >
-              {searchQuery
-                ? `${searchedPlants.length} of ${filteredPlants.length}`
-                : filteredPlants.length}
-            </span>
-          )}
-        </div>
+        <div />
         <button
           onClick={onClose}
           aria-label="Close plant panel"
@@ -146,7 +128,7 @@ export function PlantPanel({ address, zones, onClose }: PlantPanelProps) {
             background: 'none',
             border: 'none',
             borderBottom: activeTab === 'plants'
-              ? '2px solid var(--color-fire, #E8652B)'
+              ? '2px solid var(--color-fire, #4CAF50)'
               : '2px solid transparent',
             color: activeTab === 'plants'
               ? '#fff'
@@ -157,7 +139,23 @@ export function PlantPanel({ address, zones, onClose }: PlantPanelProps) {
             minHeight: 44,
           }}
         >
-          Plants
+          Plants{filteredPlants.length > 0 && (
+            <span
+              style={{
+                fontSize: '0.65rem',
+                fontWeight: 600,
+                background: 'rgba(255,255,255,0.15)',
+                color: '#e2e8f0',
+                padding: '1px 6px',
+                borderRadius: 3,
+                marginLeft: 4,
+              }}
+            >
+              {searchQuery && activeTab === 'plants'
+                ? `${searchedPlants.length} of ${filteredPlants.length}`
+                : filteredPlants.length}
+            </span>
+          )}
         </button>
         <button
           onClick={() => setActiveTab('chat')}
@@ -165,7 +163,7 @@ export function PlantPanel({ address, zones, onClose }: PlantPanelProps) {
             background: 'none',
             border: 'none',
             borderBottom: activeTab === 'chat'
-              ? '2px solid var(--color-fire, #E8652B)'
+              ? '2px solid var(--color-fire, #4CAF50)'
               : '2px solid transparent',
             color: activeTab === 'chat'
               ? '#fff'

@@ -1,7 +1,7 @@
 :root {
   --color-charcoal: #1B2028;
-  --color-fire: #E8652B;
-  --color-shire: #D4C9B8;
+  --color-fire: #4CAF50;
+  --color-shire: #A37ACC;
   --color-text: #e2e8f0;
   --color-text-muted: #94a3b8;
   --space-1: 4px;
@@ -257,7 +257,7 @@ body {
 
 .chat-markdown em {
   font-style: italic;
-  color: var(--color-shire, #D4C9B8);
+  color: var(--color-shire, #A37ACC);
 }
 
 .chat-markdown code {

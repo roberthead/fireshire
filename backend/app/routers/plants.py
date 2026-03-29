@@ -1,6 +1,10 @@
+import logging
+
 from fastapi import APIRouter, Query
 
 from app.services.plants_client import plants_client
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -25,4 +29,6 @@ async def get_plants(
     if zones:
         params["zones"] = zones
 
-    return await plants_client.get("/api/v2/plants", params=params)
+    upstream_path = "/api/v2/plants"
+    logger.info("GET %s params=%s", upstream_path, params)
+    return await plants_client.get(upstream_path, params=params)

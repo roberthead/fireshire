@@ -189,8 +189,8 @@ export function ChatPanel({ address, zones, plants }: ChatPanelProps) {
             minHeight: 44,
             padding: '0 0.75rem',
             background: !input.trim() || isStreaming
-              ? 'rgba(232,101,43,0.4)'
-              : 'var(--color-fire, #E8652B)',
+              ? 'rgba(76,175,80,0.4)'
+              : 'var(--color-fire, #4CAF50)',
             color: '#fff',
             border: 'none',
             borderRadius: 4,
