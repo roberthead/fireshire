@@ -52,6 +52,8 @@ export function AddressSearch({
       const key = `${searchAddress}:${parcel.taxlot_id}`
       if (autoSelectedRef.current !== key) {
         autoSelectedRef.current = key
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing input with fetched data
+        setAddress(parcel.address)
         showParcelOnMap(map, parcel)
         onParcelSelected?.(parcel)
       }
@@ -67,6 +69,7 @@ export function AddressSearch({
   }
 
   function handleSelect(parcel: Parcel) {
+    setAddress(parcel.address)
     setListDismissed(true)
     if (map) showParcelOnMap(map, parcel)
     onParcelSelected?.(parcel)

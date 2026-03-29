@@ -30,6 +30,7 @@ async def lookup_parcels(address: str = Query(..., min_length=2)):
     )
 
     features = data.get("features", [])
+    seen: set[str] = set()
     results = []
     for feat in features:
         attrs = feat.get("attributes", {})
@@ -38,6 +39,11 @@ async def lookup_parcels(address: str = Query(..., min_length=2)):
 
         if not rings:
             continue
+
+        taxlot_id = attrs.get("MAPLOT") or attrs.get("TM_MAPLOT") or ""
+        if taxlot_id in seen:
+            continue
+        seen.add(taxlot_id)
 
         # Compute centroid from the first ring
         ring = rings[0]
@@ -54,7 +60,7 @@ async def lookup_parcels(address: str = Query(..., min_length=2)):
         results.append(
             {
                 "address": (attrs.get("SITEADD") or "").strip(),
-                "taxlot_id": attrs.get("MAPLOT") or attrs.get("TM_MAPLOT"),
+                "taxlot_id": taxlot_id,
                 "acreage": attrs.get("ACREAGE"),
                 "owner": (attrs.get("FEEOWNER") or "").strip(),
                 "centroid": centroid,

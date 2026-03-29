@@ -24,7 +24,45 @@ SO THAT I receive the same actionable information without needing to interpret t
 
 ## Implementation Plan
 
-[to be filled in by Claude, including test plan]
+### Files to Create
+
+- `src/lib/computeZoneAreas.ts` — Pure function: takes `ZoneResult`, calls `turf.area()` on each zone FeatureCollection, converts m² → ft², returns `{ zoneLabel, distanceBand, areaSqFt }[]`
+- `src/lib/computeZoneAreas.test.ts` — Unit tests for area computation
+- `src/components/ZoneSummary.tsx` — Visible Zone Summary panel component
+- `src/components/ZoneSummary.test.tsx` — Tests for rendering, ARIA, aria-live
+
+### Files to Modify
+
+- `src/routes/index.tsx` — Wire ZoneSummary into layout, pass address/buildings props
+- `src/components/MapView.tsx` — Add `role="img"` and dynamic `aria-label` to map container
+
+### Implementation Sequence
+
+1. **computeZoneAreas.ts**: Call `turf.area()` on each zone FeatureCollection (returns m²), multiply by 10.7639 for ft², round to whole number. Zone metadata constant array provides labels and distance bands. Pure function, no React deps.
+
+2. **ZoneSummary.tsx**: Wrap in `<section aria-labelledby="zone-summary-heading">`. Include `<h2 id="zone-summary-heading">Zone Summary</h2>`. Show address, building count, then `<dl>` with `<dt>` for zone label + band, `<dd>` for area. Include a visually hidden `<div aria-live="polite">` that announces "Zone analysis complete for {address}. 4 zones identified." on mount via `useEffect` + short `setTimeout`.
+
+3. **MapView.tsx**: Add `role="img"` and optional `ariaLabel` prop to map container div. Parent computes label dynamically: "Satellite map of {address} showing {n} buildings with 4 fire-resilient landscaping zones" or generic "Satellite map of Ashland, Oregon" when no buildings loaded.
+
+4. **index.tsx**: Position ZoneSummary at bottom-left (`position: absolute, bottom: 1rem, left: 1rem`), rendered only when buildings are loaded. Pass `address`, `buildingCount`, and `buildings` props. Compute and pass `ariaLabel` to MapView.
+
+### Test Plan
+
+**computeZoneAreas.test.ts:**
+- Returns 4 zone entries with label, band, areaSqFt
+- Areas are positive for non-empty zones, 0 for empty FeatureCollections
+- Outer zones have larger areas than inner zones (zone4 > zone3 > zone2 > zone1)
+
+**ZoneSummary.test.tsx:**
+- Renders `<section>` with `aria-labelledby="zone-summary-heading"`
+- Contains `<h2>` with text "Zone Summary"
+- Displays property address and building count
+- Renders each zone's distance band and area
+- Contains `aria-live="polite"` element with announcement text
+
+**MapView.test.tsx (additions):**
+- Map container has `role="img"`
+- When `ariaLabel` prop provided, container has correct `aria-label`
 
 ## Learnings
 

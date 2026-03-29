@@ -24,7 +24,7 @@ function cleanupLayers(map: mapboxgl.Map) {
 }
 
 export function ZoneOverlay({ buildings }: { buildings: BuildingResponse }) {
-  const { map } = useMapContext()
+  const { map, zoneVisibility, setZonesReady } = useMapContext()
   const prevBuildingsRef = useRef<BuildingResponse | null>(null)
 
   useEffect(() => {
@@ -35,7 +35,6 @@ export function ZoneOverlay({ buildings }: { buildings: BuildingResponse }) {
 
     const zones = computeZoneRings(buildings as FeatureCollection<Polygon | MultiPolygon>)
 
-    // Add zone layers (outermost first for correct z-order)
     const zoneData = {
       zone4: zones.zone4,
       zone3: zones.zone3,
@@ -60,7 +59,6 @@ export function ZoneOverlay({ buildings }: { buildings: BuildingResponse }) {
       })
     }
 
-    // Add building footprints on top
     map.addSource('buildings', { type: 'geojson', data: buildings })
     map.addLayer({
       id: 'buildings-fill',
@@ -75,10 +73,27 @@ export function ZoneOverlay({ buildings }: { buildings: BuildingResponse }) {
       paint: { 'line-color': '#ffffff', 'line-width': 1.5 },
     })
 
+    setZonesReady(true)
+
     return () => {
+      setZonesReady(false)
       if (map) cleanupLayers(map)
     }
-  }, [map, buildings])
+  }, [map, buildings, setZonesReady])
+
+  // Sync layer visibility with toggle state
+  useEffect(() => {
+    if (!map) return
+    for (const style of ZONE_STYLES) {
+      const visible = zoneVisibility[style.id] ? 'visible' : 'none'
+      if (map.getLayer(`${style.id}-fill`)) {
+        map.setLayoutProperty(`${style.id}-fill`, 'visibility', visible)
+      }
+      if (map.getLayer(`${style.id}-line`)) {
+        map.setLayoutProperty(`${style.id}-line`, 'visibility', visible)
+      }
+    }
+  }, [map, zoneVisibility])
 
   return null
 }
