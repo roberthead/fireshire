@@ -52,16 +52,16 @@ function HomePage() {
 
   return (
     <MapProvider>
-      <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 1 }}>
+      <div className="overlay-top-left">
         <AddressSearch onParcelSelected={setSelectedParcel} />
       </div>
       {buildingsFetching && selectedParcel && (
-        <div style={{ position: 'absolute', top: '4.5rem', left: '1rem', zIndex: 1 }}>
+        <div className="overlay-below-search">
           <StatusBanner variant="loading" message="Drawing fire zones..." />
         </div>
       )}
       {buildingsError && selectedParcel && (
-        <div style={{ position: 'absolute', top: '4.5rem', left: '1rem', zIndex: 1 }}>
+        <div className="overlay-below-search">
           <StatusBanner
             variant="error"
             message={buildingsError instanceof ApiError && buildingsError.errorCode === 'gis_unavailable'
@@ -72,18 +72,18 @@ function HomePage() {
         </div>
       )}
       {selectedParcel && buildings && buildings.features.length === 0 && !buildingsFetching && (
-        <div style={{ position: 'absolute', top: '4.5rem', left: '1rem', zIndex: 1 }}>
+        <div className="overlay-below-search">
           <StatusBanner
             variant="info"
             message="We found your parcel but no building footprints. Zones are drawn around structures."
           />
         </div>
       )}
-      <div style={{ position: 'absolute', bottom: '1rem', right: '1rem', zIndex: 1 }}>
+      <div className="overlay-bottom-right">
         <ZoneLegend />
       </div>
       {selectedParcel && zones && hasBuildings && (
-        <div style={{ position: 'absolute', bottom: '1rem', left: '1rem', zIndex: 1 }}>
+        <div className="overlay-bottom-left">
           <ZoneSummary
             address={selectedParcel.address}
             buildingCount={buildings.features.length}

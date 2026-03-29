@@ -82,4 +82,8 @@ Color contrast: `#E8652B` on `#1B2028` is ~4.1:1 (acceptable for large text at 2
 
 ## Learnings
 
-[to be filled in by Claude after implementation]
+- CSS custom properties in `:root` make it easy to maintain a consistent spacing/color/typography system across inline-style and class-based components
+- Splitting "FireShire" into two `<span>` elements for color treatment is simpler than gradient/clip-path approaches and works well for screen readers (reads as one word)
+- Replacing inline styles with CSS classes in the search form revealed that the original dropdown used a white background — switching to `var(--color-charcoal)` with subtle borders maintains the dark theme consistency
+- Google Fonts `<link>` with `display=swap` avoids FOIT (flash of invisible text) while the font loads
+- The `overlay-below-search` class uses `calc(var(--space-4) + 44px)` to position status banners below the search bar — could be fragile if search bar height changes, but acceptable for this scope

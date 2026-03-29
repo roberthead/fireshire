@@ -80,19 +80,19 @@ export function AddressSearch({
 
   return (
     <div>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.5rem' }}>
+      <form onSubmit={handleSubmit} className="search-form">
         <input
           type="text"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           placeholder="e.g. 455 Siskiyou Blvd"
           aria-label="Ashland property address"
-          style={{ padding: '0.5rem', width: '300px' }}
+          className="search-input"
         />
         <button
           type="submit"
           disabled={isFetching || address.trim().length < 2}
-          style={{ padding: '0.5rem 1rem' }}
+          className="search-button"
         >
           {isFetching ? 'Searching...' : 'Search'}
         </button>
@@ -122,13 +122,13 @@ export function AddressSearch({
       )}
 
       {showResults && (
-        <ul style={{ listStyle: 'none', padding: 0, margin: '0.5rem 0 0', background: '#fff', borderRadius: '4px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', maxHeight: '200px', overflow: 'auto' }}>
+        <ul className="search-results">
           {parcels.slice(0, 5).map((parcel, i) => (
             <li key={parcel.taxlot_id ?? i}>
               <button
                 type="button"
                 onClick={() => handleSelect(parcel)}
-                style={{ width: '100%', textAlign: 'left', padding: '0.5rem', border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '0.85rem', borderBottom: '1px solid #eee' }}
+                className="search-results__item"
               >
                 {parcel.address} {parcel.acreage ? `(${parcel.acreage} ac)` : ''}
               </button>
