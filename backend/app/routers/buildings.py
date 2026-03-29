@@ -15,6 +15,19 @@ LAT_BUFFER = BUFFER_FT / 364_000
 LNG_BUFFER = BUFFER_FT / 271_000
 
 
+def _esri_to_geojson_feature(feature: dict) -> dict:
+    """Convert an Esri JSON feature to a GeoJSON Feature."""
+    rings = feature.get("geometry", {}).get("rings", [])
+    return {
+        "type": "Feature",
+        "properties": feature.get("attributes", {}),
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": rings,
+        },
+    }
+
+
 @router.get("/buildings")
 async def get_buildings(
     xmin: float = Query(...),
@@ -35,22 +48,24 @@ async def get_buildings(
     page_size = 2000
 
     while True:
+        # Use f=json because this MapServer does not support f=geojson
         data = await gis_client.get(
             BUILDINGS_URL,
             params={
                 "geometry": f"{envelope['xmin']},{envelope['ymin']},{envelope['xmax']},{envelope['ymax']}",
                 "geometryType": "esriGeometryEnvelope",
+                "inSR": "4326",
                 "spatialRel": "esriSpatialRelIntersects",
                 "outFields": BUILDING_FIELDS,
                 "outSR": "4326",
-                "f": "geojson",
+                "f": "json",
                 "resultOffset": str(offset),
                 "resultRecordCount": str(page_size),
             },
         )
 
         features = data.get("features", [])
-        all_features.extend(features)
+        all_features.extend(_esri_to_geojson_feature(f) for f in features)
 
         if data.get("exceededTransferLimit") and len(features) == page_size:
             offset += page_size

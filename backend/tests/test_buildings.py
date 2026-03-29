@@ -5,11 +5,18 @@ import respx
 
 BUILDINGS_URL = "https://gis.ashland.or.us/arcgis/rest/services/buildings/MapServer/0/query"
 
-SAMPLE_BUILDING = {
-    "type": "Feature",
+# Esri JSON format (what the MapServer actually returns with f=json)
+SAMPLE_ESRI_BUILDING = {
+    "attributes": {
+        "OBJECTID": 1,
+        "Bldg_name": "Main House",
+        "BLDG_CLASS": "R",
+        "Floors": 2,
+        "YR_BLT": "1985",
+        "SqFT": 1800,
+    },
     "geometry": {
-        "type": "Polygon",
-        "coordinates": [
+        "rings": [
             [
                 [-122.71, 42.19],
                 [-122.71, 42.1901],
@@ -18,14 +25,6 @@ SAMPLE_BUILDING = {
                 [-122.71, 42.19],
             ]
         ],
-    },
-    "properties": {
-        "OBJECTID": 1,
-        "Bldg_name": "Main House",
-        "BLDG_CLASS": "R",
-        "Floors": 2,
-        "YR_BLT": "1985",
-        "SqFT": 1800,
     },
 }
 
@@ -36,7 +35,7 @@ async def test_buildings_success(client):
     respx.get(BUILDINGS_URL).mock(
         return_value=httpx.Response(
             200,
-            json={"type": "FeatureCollection", "features": [SAMPLE_BUILDING]},
+            json={"features": [SAMPLE_ESRI_BUILDING]},
         )
     )
     response = await client.get(
@@ -56,7 +55,7 @@ async def test_buildings_no_results(client):
     respx.get(BUILDINGS_URL).mock(
         return_value=httpx.Response(
             200,
-            json={"type": "FeatureCollection", "features": []},
+            json={"features": []},
         )
     )
     response = await client.get(
@@ -70,22 +69,21 @@ async def test_buildings_no_results(client):
 @respx.mock
 @pytest.mark.asyncio
 async def test_buildings_pagination(client):
-    page1_features = [SAMPLE_BUILDING] * 2000
-    page2_features = [SAMPLE_BUILDING] * 500
+    page1_features = [SAMPLE_ESRI_BUILDING] * 2000
+    page2_features = [SAMPLE_ESRI_BUILDING] * 500
 
     route = respx.get(BUILDINGS_URL)
     route.side_effect = [
         httpx.Response(
             200,
             json={
-                "type": "FeatureCollection",
                 "features": page1_features,
                 "exceededTransferLimit": True,
             },
         ),
         httpx.Response(
             200,
-            json={"type": "FeatureCollection", "features": page2_features},
+            json={"features": page2_features},
         ),
     ]
     response = await client.get(

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import type { FeatureCollection, Polygon, MultiPolygon } from 'geojson'
 import { useMapContext } from '../hooks/useMapContext'
 import { computeZoneRings } from '../lib/computeZoneRings'
@@ -25,11 +25,9 @@ function cleanupLayers(map: mapboxgl.Map) {
 
 export function ZoneOverlay({ buildings }: { buildings: BuildingResponse }) {
   const { map, zoneVisibility, setZonesReady } = useMapContext()
-  const prevBuildingsRef = useRef<BuildingResponse | null>(null)
 
   useEffect(() => {
-    if (!map || !buildings || buildings === prevBuildingsRef.current) return
-    prevBuildingsRef.current = buildings
+    if (!map || !buildings) return
 
     cleanupLayers(map)
 
