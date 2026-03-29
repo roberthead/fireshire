@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { featureCollection, polygon, area } from "@turf/turf";
+import { featureCollection, polygon, area, intersect } from "@turf/turf";
 import type { FeatureCollection, Polygon, MultiPolygon } from "geojson";
 import { computeZoneRings } from "./computeZoneRings";
 
@@ -129,6 +129,51 @@ describe("computeZoneRings", () => {
     // or keep them as separate features. Either way, we should have valid output.
     expect(result.zone1.features.length).toBeGreaterThanOrEqual(1);
     expect(result.zone4.features.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("punches inner zones out of outer zones across nearby buildings", () => {
+    // Two buildings close enough that outer zones of one overlap inner zones of the other
+    const b1 = makeSquare(-122.7, 42.19, 0.0002);
+    const b2 = makeSquare(-122.6998, 42.19, 0.0002); // ~15m apart
+
+    const buildings: FeatureCollection<Polygon | MultiPolygon> =
+      featureCollection([b1, b2]);
+
+    const result = computeZoneRings(buildings);
+
+    // Zone 2 must not overlap Zone 1
+    if (result.zone2.features.length > 0 && result.zone1.features.length > 0) {
+      const overlap21 = intersect(
+        featureCollection([result.zone2.features[0]!, result.zone1.features[0]!]),
+      );
+      expect(overlap21).toBeNull();
+    }
+
+    // Zone 3 must not overlap Zone 1 or Zone 2
+    if (result.zone3.features.length > 0 && result.zone1.features.length > 0) {
+      const overlap31 = intersect(
+        featureCollection([result.zone3.features[0]!, result.zone1.features[0]!]),
+      );
+      expect(overlap31).toBeNull();
+    }
+    if (result.zone3.features.length > 0 && result.zone2.features.length > 0) {
+      const overlap32 = intersect(
+        featureCollection([result.zone3.features[0]!, result.zone2.features[0]!]),
+      );
+      expect(overlap32).toBeNull();
+    }
+
+    // Zone 4 must not overlap Zone 1, 2, or 3
+    if (result.zone4.features.length > 0) {
+      for (const innerZone of [result.zone1, result.zone2, result.zone3]) {
+        if (innerZone.features.length > 0) {
+          const overlap = intersect(
+            featureCollection([result.zone4.features[0]!, innerZone.features[0]!]),
+          );
+          expect(overlap).toBeNull();
+        }
+      }
+    }
   });
 
   it("handles multipolygon building geometries", () => {

@@ -100,6 +100,21 @@ export function computeZoneRings(
     FeatureCollection<Polygon | MultiPolygon>,
   ];
 
+  // Cross-building subtraction: punch inner zones out of outer zones
+  // so that each zone only covers its proper distance band from ALL structures.
+  for (let i = 1; i < zones.length; i++) {
+    for (let j = 0; j < i; j++) {
+      if (zones[i].features.length > 0 && zones[j].features.length > 0) {
+        const subtracted = difference(
+          featureCollection([zones[i].features[0]!, zones[j].features[0]!]),
+        );
+        zones[i] = subtracted
+          ? featureCollection([subtracted as Feature<Polygon | MultiPolygon>])
+          : featureCollection([]);
+      }
+    }
+  }
+
   return {
     zone1: zones[0],
     zone2: zones[1],
