@@ -28,12 +28,14 @@ function showParcelOnMap(map: mapboxgl.Map, parcel: Parcel) {
 }
 
 export function AddressSearch({
+  initialAddress,
   onParcelSelected,
 }: {
+  initialAddress?: string
   onParcelSelected?: (parcel: Parcel) => void
 }) {
-  const [address, setAddress] = useState('')
-  const [searchAddress, setSearchAddress] = useState('')
+  const [address, setAddress] = useState(initialAddress || '')
+  const [searchAddress, setSearchAddress] = useState(initialAddress || '')
   const [listDismissed, setListDismissed] = useState(false)
   const { map } = useMapContext()
   const autoSelectedRef = useRef('')
