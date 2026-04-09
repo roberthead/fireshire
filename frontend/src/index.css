@@ -300,6 +300,409 @@ body {
   color: #fff;
 }
 
+/* Header layout */
+.app-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-header__link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.app-nav {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.app-nav__link {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius);
+  transition: color var(--transition);
+}
+
+.app-nav__link:hover {
+  color: var(--color-text);
+}
+
+.app-nav__link--active {
+  color: var(--color-fire);
+}
+
+/* Prepare page */
+.prepare-page {
+  min-height: 100%;
+  background: var(--color-charcoal);
+  padding: var(--space-8) var(--space-4);
+  overflow-y: auto;
+}
+
+.prepare-container {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.prepare-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: var(--space-2);
+}
+
+.prepare-subtitle {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-6);
+}
+
+.prepare-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: var(--space-6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  min-height: 44px;
+}
+
+.toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.toggle-btn--active {
+  background: var(--color-fire);
+  color: #fff;
+}
+
+.flow-description {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+  line-height: 1.6;
+}
+
+.prepare-search {
+  margin-bottom: var(--space-4);
+}
+
+.prepare-input {
+  flex: 1;
+}
+
+.prepare-message {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+
+.prepare-message--warning {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.prepare-message--success {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  color: #a5d6a7;
+}
+
+.prepare-message a {
+  color: var(--color-fire);
+}
+
+.prepare-results {
+  list-style: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.prepare-result-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background var(--transition);
+  min-height: 44px;
+}
+
+.prepare-result-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.result-address {
+  font-weight: 600;
+  color: #fff;
+}
+
+.result-meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* HOA flow */
+.hoa-list {
+  list-style: none;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.hoa-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: var(--space-3);
+}
+
+.hoa-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.hoa-name {
+  font-weight: 600;
+  color: #fff;
+}
+
+.hoa-subdivision {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.copy-btn {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 44px;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.copy-btn--copied {
+  background: var(--color-fire);
+  border-color: var(--color-fire);
+  color: #fff;
+}
+
+.hoa-email-preview {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.hoa-email-text {
+  white-space: pre-wrap;
+  font-family: var(--font-family);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.hoa-copy-btn {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  min-height: 48px;
+}
+
+/* Survey page */
+.survey-page {
+  min-height: 100%;
+  background: var(--color-charcoal);
+  padding: var(--space-8) var(--space-4);
+  overflow-y: auto;
+}
+
+.survey-container {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.survey-title {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: var(--space-1);
+}
+
+.survey-subtitle {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-6);
+}
+
+.survey-property-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.survey-property-card h3 {
+  color: #fff;
+  margin-bottom: var(--space-3);
+}
+
+.survey-detail {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.survey-label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.survey-section {
+  margin-bottom: var(--space-6);
+}
+
+.survey-section h3 {
+  color: #fff;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.survey-field {
+  margin-bottom: var(--space-4);
+}
+
+.survey-field > label:first-child {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.survey-input,
+.survey-textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--color-text);
+  min-height: 44px;
+  transition: border-color var(--transition);
+}
+
+.survey-input:focus,
+.survey-textarea:focus {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.survey-textarea {
+  resize: vertical;
+}
+
+.survey-radio-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.survey-radio-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  color: var(--color-text);
+  min-height: 44px;
+}
+
+.survey-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.survey-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  color: var(--color-text);
+  min-height: 44px;
+}
+
+.survey-submit-btn {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-family);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-fire);
+  color: #fff;
+  cursor: pointer;
+  min-height: 48px;
+  transition: opacity var(--transition);
+  margin-top: var(--space-4);
+}
+
+.survey-submit-btn:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.survey-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* Responsive: tablets and large phones */
 @media (max-width: 768px) {
   .app-main {

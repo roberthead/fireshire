@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { computeZoneAreas } from "../lib/computeZoneAreas";
 import type { ZoneResult } from "../lib/computeZoneRings";
+import { searchParcels, saveMapResult } from "../lib/allclearApi";
 
 export interface ZoneSummaryProps {
   address: string;
@@ -9,6 +11,42 @@ export interface ZoneSummaryProps {
 
 export function ZoneSummary({ address, buildingCount, zones }: ZoneSummaryProps) {
   const areas = computeZoneAreas(zones);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSave() {
+    setSaving(true);
+    setError(null);
+    try {
+      // Match address to an AllClear parcel
+      const parcels = await searchParcels(address);
+      if (parcels.length === 0) {
+        setError("Property not found in our database.");
+        setSaving(false);
+        return;
+      }
+      const parcel = parcels[0];
+
+      // Save map result and mark map_complete
+      const result = await saveMapResult(parcel.hash_code, {
+        buildings_count: buildingCount,
+      });
+
+      setSaved(true);
+
+      // Check if survey is done — if not, redirect
+      if (!result.survey_complete) {
+        window.location.href = `/survey/${parcel.hash_code}`;
+      } else {
+        window.location.href = `/complete/${parcel.hash_code}`;
+      }
+    } catch {
+      setError("Could not save. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <section
@@ -67,6 +105,35 @@ export function ZoneSummary({ address, buildingCount, zones }: ZoneSummaryProps)
           </div>
         ))}
       </dl>
+
+      <button
+        type="button"
+        onClick={handleSave}
+        disabled={saving || saved}
+        style={{
+          marginTop: "0.75rem",
+          width: "100%",
+          padding: "0.5rem",
+          border: "none",
+          borderRadius: 6,
+          background: saved ? "#22c55e" : "#4CAF50",
+          color: "#fff",
+          fontWeight: 600,
+          fontSize: "0.8rem",
+          cursor: saving || saved ? "default" : "pointer",
+          opacity: saving ? 0.6 : 1,
+          minHeight: 44,
+          transition: "opacity 150ms ease",
+        }}
+      >
+        {saving ? "Saving..." : saved ? "Saved!" : "Save My Results"}
+      </button>
+
+      {error && (
+        <p style={{ fontSize: "0.75rem", color: "#fca5a5", marginTop: "0.25rem" }}>
+          {error}
+        </p>
+      )}
 
       <div
         aria-live="polite"

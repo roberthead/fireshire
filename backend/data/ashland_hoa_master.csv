@@ -1,0 +1,38 @@
+hoa_name,subdivision_name,status,pdo_parcel_count,pdo_streets,state_registry_num,state_registry_date,website,address,phone,notes,data_sources
+"Billings Ranch HOA, Inc.",Billings Ranch Subdivision A P. C.,confirmed,59,EASTERLING LN; LINDSAY LN; NEVADA ST W; VANSANT ST; W NEVADA ST,49559891,2008-02-05,https://www.billingsranchhoa.com/,"241 MAPLE ST STE 100, ASHLAND, OR 97520",,"Active website, CC&Rs, board; President: VICKI GRIESINGER",pdo;web_search;state_hoa
+Riverwalk Homeowners Association,"River Walk Subdivision, A P.C.",confirmed,52,BRISCOE PL; CLINTON ST; MOUNTAIN AVE N,,,https://riverwalkofashland.org/,,,"175+ homes, 241 Maple St",pdo;web_search
+Bud's Dairy Homeowners Association,Bud's Dairy A P.C.,confirmed,45,ABBOTT AVE; DOLLARHIDE WAY; ENGLE ST,,,,,,"D&B listing, founded 2010",pdo;web_search
+Pavilion Condominium Association,"Pavilion Condominium, The",confirmed,31,MOUNTAIN AVE N; PAVILION PL; SKYLARK PL,,,,,,CC&Rs via Mountain Meadows mgmt,pdo;web_search
+Creekside Cottages Condominium Association,Creekside Cottages Condominium,confirmed,20,SISKIYOU BLVD,13485396,,,,,OR SOS registry 13485396,pdo;web_search
+Five Turret Townhouses HOA,Five Turret Townhouses A P.C.,confirmed,12,CALIFORNIA ST,,,,,,TransparencyHOA listing,pdo;web_search
+Deerfield Estates HOA,Deerfield Estates Subdivision,confirmed,10,CHITWOOD LN; CLAY ST,,,https://sites.google.com/site/dehapublic/docs,,,Google Sites with docs,pdo;web_search
+Hamilton Place HOA,Hamilton Place Subdivision,confirmed,8,OLD MILL WAY,,,,,(541) 488-6965,955 Drew Lane,pdo;web_search
+Ashland Conservancy HOA,,confirmed,0,,,,https://ashlandconservancy.com/,"Ashland, OR",,Monthly board meetings,web
+Chautauqua Trace HOA,,confirmed,0,,,,https://chautauquatracehoa.communitysite.com/,"Ashland, OR",,,web
+Chelsea Oaks Condominium Association,,confirmed,0,,,,,"854 Twin Pines Cir, Ashland, OR 97520",,Est. 2014,SOS registry
+Clay Creek Gardens HOA,,confirmed,0,,,,https://ashlandia.wixsite.com/claycreekhoa,"Ashland, OR",,,web
+East Village HOA,,confirmed,0,,,,https://eastvillagehoaashland.com/,"Ashland, OR",,,web
+Fallen Leaf Tract Association,,confirmed,0,,,,,"580 Elkader St, Ashland, OR 97520",,"Social Welfare Org, est. 2013",IRS 501c
+HERSEY HEIGHTS PLANNED UNIT DEVELOPMENT HOA,,confirmed,0,,115906794,2015-11-04,,"161 E HERSEY ST, ASHLAND, OR 97520",,President: JOAN REICHERT,state_hoa
+KESTREL PARK COTTAGES PHASE II HOA,,confirmed,0,,220612691,2023-12-18,,"444 NANDINA ST, ASHLAND, OR 97520",,President: CASS LARKIN,state_hoa
+Meadowbrook Park Estates HOA,,confirmed,0,,,,https://www.meadowbrookparkestates.com/,"Ashland, OR",,"59 homes, est. 1997",web
+Meadowbrook Park II North Mountain HOA,,confirmed,0,,,,https://www.meadowbrookparkashlandor.com/,"Ashland, OR",,,web
+Mountain Meadows Owners Association,,confirmed,0,,,,https://mountainmeadowsashland.com/mmoa/,"855 Mountain Meadows Dr, Ashland, OR 97520",,"226 properties, 27 acres",web
+Mountain Ranch Property Owners Association (MRPOA),,confirmed,0,,,,https://mrpoa-ashland.com/,"1467 Siskiyou Blvd #341, Ashland, OR 97520",,"74 homes, 26 acres, est. late 1970s",web
+Oak Knoll Meadows Homeowners Association,,confirmed,0,,17301110,,,"241 Maple St Ste 100, Ashland, OR 97520",,"Registry 17301110, est. 1983",SOS registry
+Rosskeen Subdivision HOA,,confirmed,0,,39279781,,,"356 Otis St, Ashland, OR 97520",,Registry 39279781,SOS registry
+Vander Lind HOA,,confirmed,0,,99789498,,,"410 Guthrie St, Ashland, OR 97520",,Registry 99789498,SOS registry
+Strawberry Meadows Subdivision A P.C.,Strawberry Meadows Subdivision A P.C.,uncertain,19,BIRDSONG LN; HITT RD; STRAWBERRY LN,,,,,,No web presence,pdo;web_search
+Quinn Subdivision A P.C.,Quinn Subdivision A P.C.,uncertain,14,FAIR OAKS CT; PATTON LN; PLUM RIDGE DR,,,,,,No web presence,pdo;web_search
+"Park Ridge Subdivision, Phase 2 A P.U.D.","Park Ridge Subdivision, Phase 2 A P.U.D.",uncertain,11,PARK RIDGE PL,,,,,,No web presence,pdo;web_search
+"Clear Creek Village, Phase 2 A P.C.","Clear Creek Village, Phase 2 A P.C.",uncertain,9,CLEAR CREEK DR; CLEAR CREEK DR 101; E HERSEY ST 1-5,,,,,,Possibly related to East Village HOA,pdo;web_search
+Park Place Condominiums,Park Place Condominiums,uncertain,9,PARK ST,,,,,,No Ashland-specific result,pdo;web_search
+Shelterwood Condominium Supp Plat No I,Shelterwood Condominium Supp Plat No I,uncertain,8,NORMAL AVE,,,,,,No web presence,pdo;web_search
+Siskiyou Springs Condominium,Siskiyou Springs Condominium,uncertain,4,PARK ST,,,,,,No web presence,pdo;web_search
+"Gould Townhouses, A P.C.","Gould Townhouses, A P.C.",uncertain,2,LAUREL ST N,,,,,,No results,pdo;web_search
+Jasmine Building Condominium,Jasmine Building Condominium,likely_not_hoa,8,LITHIA WAY 102; LITHIA WAY 201; LITHIA WAY 202; LITHIA WAY 203; LITHIA WAY 205; LITHIA WAY 206; LITHIA WAY 301; LITHIA WAY 302,,,,,,Likely commercial,pdo;web_search
+Alida Blaine Condominium,Alida Blaine Condominium,likely_not_hoa,4,ALIDA ST; BLAINE ST,,,,,,No results,pdo;web_search
+Ashland East Main Street Condominium,Ashland East Main Street Condominium,likely_not_hoa,4,MAIN ST E,,,,,,No results,pdo;web_search
+Ashland Medical Center A P.C.,Ashland Medical Center A P.C.,likely_not_hoa,4,N MAIN ST,,,,,,Commercial/medical,pdo;web_search
+Larkin Lane Condominium,Larkin Lane Condominium,likely_not_hoa,4,LARKIN LN,,,,,,No results,pdo;web_search
+"Replat Of Lots 9,10,12,13, & Common Area Of Washington Professional Plaza, A P.C.","Replat Of Lots 9,10,12,13, & Common Area Of Washington Professional Plaza, A P.C.",likely_not_hoa,3,WASHINGTON ST,,,,,,Commercial office,pdo;web_search

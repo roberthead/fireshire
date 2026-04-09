@@ -17,6 +17,9 @@ import { activeZoneDisplayNames } from '../lib/zoneDisplayNames'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    address: (search.address as string) || '',
+  }),
 })
 
 function bboxFromGeometry(geometry: Parcel['geometry']) {
@@ -39,6 +42,7 @@ function PlantPanelConnector({ address, onClose }: { address?: string; onClose: 
 }
 
 function HomePage() {
+  const { address: initialAddress } = Route.useSearch()
   const [selectedParcel, setSelectedParcel] = useState<Parcel | null>(null)
   const [plantPanelOpen, setPlantPanelOpen] = useState(true)
 
@@ -64,7 +68,7 @@ function HomePage() {
   return (
     <MapProvider>
       <div className="overlay-top-left">
-        <AddressSearch onParcelSelected={(parcel) => { setSelectedParcel(parcel); setPlantPanelOpen(true) }} />
+        <AddressSearch initialAddress={initialAddress} onParcelSelected={(parcel) => { setSelectedParcel(parcel); setPlantPanelOpen(true) }} />
       </div>
       {buildingsFetching && selectedParcel && (
         <div className="overlay-below-search">

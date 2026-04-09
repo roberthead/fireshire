@@ -9,38 +9,80 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PrepareRouteImport } from './routes/prepare'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SurveyHashCodeRouteImport } from './routes/survey.$hashCode'
+import { Route as CompleteHashCodeRouteImport } from './routes/complete.$hashCode'
 
+const PrepareRoute = PrepareRouteImport.update({
+  id: '/prepare',
+  path: '/prepare',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SurveyHashCodeRoute = SurveyHashCodeRouteImport.update({
+  id: '/survey/$hashCode',
+  path: '/survey/$hashCode',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompleteHashCodeRoute = CompleteHashCodeRouteImport.update({
+  id: '/complete/$hashCode',
+  path: '/complete/$hashCode',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/prepare': typeof PrepareRoute
+  '/complete/$hashCode': typeof CompleteHashCodeRoute
+  '/survey/$hashCode': typeof SurveyHashCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/prepare': typeof PrepareRoute
+  '/complete/$hashCode': typeof CompleteHashCodeRoute
+  '/survey/$hashCode': typeof SurveyHashCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/prepare': typeof PrepareRoute
+  '/complete/$hashCode': typeof CompleteHashCodeRoute
+  '/survey/$hashCode': typeof SurveyHashCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/prepare' | '/complete/$hashCode' | '/survey/$hashCode'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/prepare' | '/complete/$hashCode' | '/survey/$hashCode'
+  id:
+    | '__root__'
+    | '/'
+    | '/prepare'
+    | '/complete/$hashCode'
+    | '/survey/$hashCode'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PrepareRoute: typeof PrepareRoute
+  CompleteHashCodeRoute: typeof CompleteHashCodeRoute
+  SurveyHashCodeRoute: typeof SurveyHashCodeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/prepare': {
+      id: '/prepare'
+      path: '/prepare'
+      fullPath: '/prepare'
+      preLoaderRoute: typeof PrepareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +90,28 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/survey/$hashCode': {
+      id: '/survey/$hashCode'
+      path: '/survey/$hashCode'
+      fullPath: '/survey/$hashCode'
+      preLoaderRoute: typeof SurveyHashCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/complete/$hashCode': {
+      id: '/complete/$hashCode'
+      path: '/complete/$hashCode'
+      fullPath: '/complete/$hashCode'
+      preLoaderRoute: typeof CompleteHashCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PrepareRoute: PrepareRoute,
+  CompleteHashCodeRoute: CompleteHashCodeRoute,
+  SurveyHashCodeRoute: SurveyHashCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
