@@ -141,3 +141,116 @@ export async function fetchPlants(
     throw err
   }
 }
+
+// --- Plant Entries API types ---
+
+export type ZoneKey = '0-5' | '5-10' | '10-30' | '30-100'
+
+export interface PlantEntry {
+  id: string
+  taxlot_id: string
+  zone: ZoneKey
+  plant_id: string | null
+  plant_name: string
+  source: 'manual' | 'photo_id'
+  image_url: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface PlantEntriesResponse {
+  entries: PlantEntry[]
+}
+
+export interface PlantEntryCreate {
+  taxlot_id: string
+  zone: ZoneKey
+  plant_id?: string | null
+  plant_name: string
+  notes?: string | null
+}
+
+export interface PlantEntryUpdate {
+  zone?: ZoneKey
+  plant_name?: string
+  notes?: string | null
+}
+
+async function handleJsonResponse<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new ApiError(res.status, body?.error ?? null, body?.detail ?? 'Server error')
+  }
+  return res.json()
+}
+
+export async function fetchEntries(taxlotId: string): Promise<PlantEntriesResponse> {
+  try {
+    const res = await fetch(
+      `/api/plant-entries?taxlot_id=${encodeURIComponent(taxlotId)}`,
+    )
+    return handleJsonResponse<PlantEntriesResponse>(res)
+  } catch (err) {
+    if (err instanceof ApiError) throw err
+    if (err instanceof TypeError) {
+      throw new ApiError(0, 'network_error', "We can't reach our server right now. Please check your connection and try again.")
+    }
+    throw err
+  }
+}
+
+export async function createEntry(data: PlantEntryCreate): Promise<PlantEntry> {
+  try {
+    const res = await fetch('/api/plant-entries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    return handleJsonResponse<PlantEntry>(res)
+  } catch (err) {
+    if (err instanceof ApiError) throw err
+    if (err instanceof TypeError) {
+      throw new ApiError(0, 'network_error', "We can't reach our server right now. Please check your connection and try again.")
+    }
+    throw err
+  }
+}
+
+export async function updateEntry(
+  id: string,
+  data: PlantEntryUpdate,
+): Promise<PlantEntry> {
+  try {
+    const res = await fetch(`/api/plant-entries/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    return handleJsonResponse<PlantEntry>(res)
+  } catch (err) {
+    if (err instanceof ApiError) throw err
+    if (err instanceof TypeError) {
+      throw new ApiError(0, 'network_error', "We can't reach our server right now. Please check your connection and try again.")
+    }
+    throw err
+  }
+}
+
+export async function deleteEntry(id: string): Promise<void> {
+  try {
+    const res = await fetch(`/api/plant-entries/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    })
+    if (!res.ok && res.status !== 204) {
+      const body = await res.json().catch(() => null)
+      throw new ApiError(res.status, body?.error ?? null, body?.detail ?? 'Server error')
+    }
+  } catch (err) {
+    if (err instanceof ApiError) throw err
+    if (err instanceof TypeError) {
+      throw new ApiError(0, 'network_error', "We can't reach our server right now. Please check your connection and try again.")
+    }
+    throw err
+  }
+}

@@ -5,8 +5,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
+from app.crud.plant_entries import EntryNotFoundError, ZoneCapExceededError
 from app.database import engine, Base
-from app.routers import buildings, chat, parcels, plants
+from app.routers import buildings, chat, parcels, plant_entries, plants
 from app.routers.allclear import router as allclear_router, load_hoa_list
 from app.services.chat_client import AnthropicError, chat_client
 from app.services.gis_client import GISServiceError, gis_client
@@ -52,6 +53,7 @@ app = FastAPI(title="FireShire", version="0.1.0", lifespan=lifespan)
 app.include_router(parcels.router)
 app.include_router(buildings.router)
 app.include_router(plants.router)
+app.include_router(plant_entries.router)
 app.include_router(chat.router)
 app.include_router(allclear_router)
 
@@ -77,6 +79,28 @@ async def anthropic_error_handler(request, exc: AnthropicError):
     return JSONResponse(
         status_code=503,
         content={"error": "chat_unavailable", "detail": str(exc)},
+    )
+
+
+@app.exception_handler(EntryNotFoundError)
+async def entry_not_found_handler(request, exc: EntryNotFoundError):
+    return JSONResponse(
+        status_code=404,
+        content={"error": "entry_not_found", "detail": str(exc)},
+    )
+
+
+@app.exception_handler(ZoneCapExceededError)
+async def zone_cap_exceeded_handler(request, exc: ZoneCapExceededError):
+    return JSONResponse(
+        status_code=409,
+        content={
+            "error": "zone_cap_exceeded",
+            "detail": str(exc),
+            "taxlot_id": exc.taxlot_id,
+            "zone": exc.zone,
+            "cap": exc.cap,
+        },
     )
 
 

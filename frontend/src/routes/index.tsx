@@ -5,15 +5,13 @@ import type { FeatureCollection, Polygon, MultiPolygon } from 'geojson'
 import { AddressSearch } from '../components/AddressSearch'
 import { ZoneLegend } from '../components/ZoneLegend'
 import { ZoneSummary } from '../components/ZoneSummary'
-import { PlantPanel } from '../components/PlantPanel'
+import { ZonePlantLists } from '../components/ZonePlantLists'
 import { MapView } from '../components/MapView'
 import { MapProvider } from '../contexts/MapContext'
 import { ZoneOverlay } from '../components/ZoneOverlay'
 import { computeZoneRings } from '../lib/computeZoneRings'
 import { fetchBuildings, ApiError, type Parcel } from '../lib/api'
 import { StatusBanner } from '../components/StatusBanner'
-import { useMapContext } from '../hooks/useMapContext'
-import { activeZoneDisplayNames } from '../lib/zoneDisplayNames'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -32,13 +30,6 @@ function bboxFromGeometry(geometry: Parcel['geometry']) {
     if (lat > ymax) ymax = lat
   }
   return { xmin, ymin, xmax, ymax }
-}
-
-function PlantPanelConnector({ address, onClose }: { address?: string; onClose: () => void }) {
-  const { zoneVisibility } = useMapContext()
-  const zones = activeZoneDisplayNames(zoneVisibility)
-  if (zones.length === 0) return null
-  return <PlantPanel address={address} zones={zones} onClose={onClose} />
 }
 
 function HomePage() {
@@ -106,9 +97,14 @@ function HomePage() {
           />
         </div>
       )}
-      {selectedParcel && hasBuildings && plantPanelOpen && (
+      {selectedParcel && plantPanelOpen && selectedParcel.taxlot_id && (
         <div className="overlay-right">
-          <PlantPanelConnector address={selectedParcel?.address} onClose={() => setPlantPanelOpen(false)} />
+          <ZonePlantLists
+            taxlotId={selectedParcel.taxlot_id}
+            address={selectedParcel.address}
+            hasBuildings={!!hasBuildings}
+            onClose={() => setPlantPanelOpen(false)}
+          />
         </div>
       )}
       <MapView ariaLabel={mapAriaLabel} />
