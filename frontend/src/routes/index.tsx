@@ -108,8 +108,8 @@ function HomePage() {
         </div>
       )}
       <MapView ariaLabel={mapAriaLabel} />
-      {hasBuildings && (
-        <ZoneOverlay buildings={buildings} />
+      {hasBuildings && selectedParcel && (
+        <ZoneOverlay buildings={buildings} parcel={selectedParcel} />
       )}
     </MapProvider>
   )

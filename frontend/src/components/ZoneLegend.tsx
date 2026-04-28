@@ -168,6 +168,63 @@ export function ZoneLegend() {
           </button>
         );
       })}
+      <div
+        style={{
+          marginTop: "0.5rem",
+          paddingTop: "0.5rem",
+          borderTop: "1px solid rgba(255,255,255,0.12)",
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.3rem",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          <span
+            style={{
+              width: 14,
+              height: 10,
+              background: "#334155",
+              border: "1.5px solid #ffffff",
+              borderRadius: 1,
+              display: "inline-block",
+              flexShrink: 0,
+            }}
+            aria-hidden="true"
+          />
+          <span style={{ fontSize: "0.75rem", color: "#e2e8f0" }}>
+            Your buildings
+          </span>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          <span
+            style={{
+              width: 14,
+              height: 10,
+              background: "#0f172a",
+              border: "1.5px dashed rgba(203, 213, 225, 0.7)",
+              borderRadius: 1,
+              display: "inline-block",
+              flexShrink: 0,
+            }}
+            aria-hidden="true"
+          />
+          <span style={{ fontSize: "0.75rem", color: "#e2e8f0" }}>
+            Adjacent buildings
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,8 @@ import { useEffect } from 'react'
 import type { FeatureCollection, Polygon, MultiPolygon } from 'geojson'
 import { useMapContext } from '../hooks/useMapContext'
 import { computeZoneRings } from '../lib/computeZoneRings'
-import type { BuildingResponse } from '../lib/api'
+import { partitionBuildings } from '../lib/partitionBuildings'
+import type { BuildingResponse, Parcel } from '../lib/api'
 
 const ZONE_STYLES = [
   { id: 'zone4', color: '#48bb78', opacity: 0.25 },
@@ -11,8 +12,19 @@ const ZONE_STYLES = [
   { id: 'zone1', color: '#e53e3e', opacity: 0.35 },
 ] as const
 
-const LAYER_IDS = [...ZONE_STYLES.map((z) => `${z.id}-fill`), ...ZONE_STYLES.map((z) => `${z.id}-line`), 'buildings-fill', 'buildings-outline']
-const SOURCE_IDS = [...ZONE_STYLES.map((z) => z.id), 'buildings']
+const LAYER_IDS = [
+  ...ZONE_STYLES.map((z) => `${z.id}-fill`),
+  ...ZONE_STYLES.map((z) => `${z.id}-line`),
+  'buildings-own-fill',
+  'buildings-own-outline',
+  'buildings-adjacent-fill',
+  'buildings-adjacent-outline',
+]
+const SOURCE_IDS = [
+  ...ZONE_STYLES.map((z) => z.id),
+  'buildings-own',
+  'buildings-adjacent',
+]
 
 function cleanupLayers(map: mapboxgl.Map) {
   for (const id of LAYER_IDS) {
@@ -23,7 +35,13 @@ function cleanupLayers(map: mapboxgl.Map) {
   }
 }
 
-export function ZoneOverlay({ buildings }: { buildings: BuildingResponse }) {
+export function ZoneOverlay({
+  buildings,
+  parcel,
+}: {
+  buildings: BuildingResponse
+  parcel: Parcel
+}) {
   const { map, zoneVisibility, setZonesReady } = useMapContext()
 
   useEffect(() => {
@@ -33,6 +51,10 @@ export function ZoneOverlay({ buildings }: { buildings: BuildingResponse }) {
       cleanupLayers(map)
 
       const zones = computeZoneRings(buildings as FeatureCollection<Polygon | MultiPolygon>)
+      const { own, adjacent } = partitionBuildings(
+        buildings as FeatureCollection<Polygon | MultiPolygon>,
+        parcel.geometry,
+      )
 
       const zoneData = {
         zone4: zones.zone4,
@@ -64,23 +86,48 @@ export function ZoneOverlay({ buildings }: { buildings: BuildingResponse }) {
         }
       }
 
-      if (!map.getSource('buildings')) {
-        map.addSource('buildings', { type: 'geojson', data: buildings })
+      if (!map.getSource('buildings-own')) {
+        map.addSource('buildings-own', { type: 'geojson', data: own })
       }
-      if (!map.getLayer('buildings-fill')) {
+      if (!map.getLayer('buildings-own-fill')) {
         map.addLayer({
-          id: 'buildings-fill',
+          id: 'buildings-own-fill',
           type: 'fill',
-          source: 'buildings',
-          paint: { 'fill-color': '#334155', 'fill-opacity': 0.6 },
+          source: 'buildings-own',
+          paint: { 'fill-color': '#334155', 'fill-opacity': 0.65 },
         })
       }
-      if (!map.getLayer('buildings-outline')) {
+      if (!map.getLayer('buildings-own-outline')) {
         map.addLayer({
-          id: 'buildings-outline',
+          id: 'buildings-own-outline',
           type: 'line',
-          source: 'buildings',
-          paint: { 'line-color': '#ffffff', 'line-width': 1.5 },
+          source: 'buildings-own',
+          paint: { 'line-color': '#ffffff', 'line-width': 2 },
+        })
+      }
+
+      if (!map.getSource('buildings-adjacent')) {
+        map.addSource('buildings-adjacent', { type: 'geojson', data: adjacent })
+      }
+      if (!map.getLayer('buildings-adjacent-fill')) {
+        map.addLayer({
+          id: 'buildings-adjacent-fill',
+          type: 'fill',
+          source: 'buildings-adjacent',
+          paint: { 'fill-color': '#0f172a', 'fill-opacity': 0.55 },
+        })
+      }
+      if (!map.getLayer('buildings-adjacent-outline')) {
+        map.addLayer({
+          id: 'buildings-adjacent-outline',
+          type: 'line',
+          source: 'buildings-adjacent',
+          paint: {
+            'line-color': '#cbd5e1',
+            'line-width': 1.5,
+            'line-opacity': 0.6,
+            'line-dasharray': [2, 2],
+          },
         })
       }
 
@@ -97,7 +144,7 @@ export function ZoneOverlay({ buildings }: { buildings: BuildingResponse }) {
         // Style may not be loaded during teardown
       }
     }
-  }, [map, buildings, setZonesReady])
+  }, [map, buildings, parcel, setZonesReady])
 
   // Sync layer visibility with toggle state
   useEffect(() => {
