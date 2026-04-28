@@ -68,8 +68,13 @@
 
 <script>
 const stories = {
-  backlog: [],
-  current: [],
+  backlog: [
+    { id: 'BACKLOG', title: 'Identify Plants from Photos via PlantNet', summary: 'Photo-upload flow that calls PlantNet to identify plants and adds them to a fire zone', size: 'L', priority: 'P3' },
+  ],
+  current: [
+    { id: 'CURRENT', title: 'Flexible Address Matching', summary: 'Suffix/directional normalization, parsed-field query, rapidfuzz fallback with "Did you mean…?" suggestions, and SQL-injection escaping', size: 'M', priority: 'P2' },
+    { id: 'CURRENT', title: 'Populate Plants by Fire Zone', summary: 'DB-backed per-zone plant lists for the active parcel', size: 'M', priority: 'P2' },
+  ],
   done: [
     { id: '16', title: 'Zone Geometry Ring Differencing', summary: 'Cross-building subtraction pass so each zone only covers its proper distance band from ALL structures', size: 'M', priority: 'P1' },
     { id: '15', title: 'Fire-Resilient Landscaping Chatbot', summary: 'Chat panel with Claude API for personalized plant and defensible space guidance, streaming SSE responses with property context', size: 'L', priority: 'P2' },

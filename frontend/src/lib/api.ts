@@ -10,8 +10,15 @@ export interface Parcel {
   }
 }
 
+export interface Suggestion {
+  address: string
+  taxlot_id: string
+  score: number
+}
+
 export interface ParcelResponse {
   parcels: Parcel[]
+  suggestions: Suggestion[]
 }
 
 import type { FeatureCollection, Polygon, MultiPolygon } from 'geojson'

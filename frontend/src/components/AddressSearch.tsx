@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, type FormEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { fetchParcels, ApiError, type Parcel } from '../lib/api'
+import { fetchParcels, ApiError, type Parcel, type Suggestion } from '../lib/api'
 import { useMapContext } from '../hooks/useMapContext'
 import { StatusBanner } from './StatusBanner'
 
@@ -47,6 +47,7 @@ export function AddressSearch({
   })
 
   const parcels = useMemo(() => data?.parcels ?? [], [data])
+  const suggestions = useMemo(() => data?.suggestions ?? [], [data])
 
   // Auto-select single result
   useEffect(() => {
@@ -76,6 +77,13 @@ export function AddressSearch({
     setListDismissed(true)
     if (map) showParcelOnMap(map, parcel)
     onParcelSelected?.(parcel)
+  }
+
+  function handleSuggestionClick(suggestion: Suggestion) {
+    autoSelectedRef.current = ''
+    setListDismissed(false)
+    setAddress(suggestion.address)
+    setSearchAddress(suggestion.address)
   }
 
   const showResults = searchAddress.length > 0 && !isFetching && parcels.length > 1 && !listDismissed
@@ -114,12 +122,31 @@ export function AddressSearch({
         </div>
       )}
 
-      {!isFetching && !error && searchAddress.length > 0 && parcels.length === 0 && (
+      {!isFetching && !error && searchAddress.length > 0 && parcels.length === 0 && suggestions.length === 0 && (
         <div style={{ marginTop: '0.5rem' }}>
           <StatusBanner
             variant="warning"
             message="We couldn't find that address in Ashland. This tool only covers properties within Ashland city limits."
           />
+        </div>
+      )}
+
+      {!isFetching && !error && searchAddress.length > 0 && parcels.length === 0 && suggestions.length > 0 && (
+        <div role="region" aria-labelledby="suggestions-heading" style={{ marginTop: '0.5rem' }}>
+          <p id="suggestions-heading" className="search-results__hint">Did you mean…?</p>
+          <ul className="search-results" aria-label="Suggested addresses">
+            {suggestions.slice(0, 5).map((s) => (
+              <li key={s.taxlot_id}>
+                <button
+                  type="button"
+                  onClick={() => handleSuggestionClick(s)}
+                  className="search-results__item"
+                >
+                  {s.address}
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
