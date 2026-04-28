@@ -109,4 +109,9 @@ Replace the single `UPPER(SITEADD) LIKE '%input%'` query with a layered match st
 
 ## Learnings
 
-[to be filled in by Claude after implementation]
+- **Backend + frontend devs in parallel worked cleanly** because the API contract (`{parcels, suggestions}` with `Suggestion` shape) was locked in the plan before either started. No coordination drift, both passed validation on first run.
+- **The story-planner judged that 5-specialist fan-out was overkill** for a 40-line router and synthesized the plan inline. Right call — kept the planning tight and avoided ceremony.
+- **`rapidfuzz.fuzz.WRatio` thresholds needed empirical tuning at test time.** Originally-proposed sibling fixtures (`ZEBRA ST`, `QUARTZ DR`) scored below the 70 suggestion floor; the test was adjusted to use `DIANE AVE` / `DIANE BLVD` which land cleanly between the 70 floor and the 85 promote threshold. Lesson: when implementing, validate the test fixtures against the actual scoring function before locking them in.
+- **Response-shape decision (separate `suggestions[]` vs reusing `parcels[]`) was load-bearing.** Reusing `parcels[]` would have caused the existing single-result auto-select effect in `AddressSearch.tsx` to fly the map to a typo'd parcel. The dedicated field keeps geometry data and match-confidence semantics from leaking into each other.
+- **`STREETNAME` field-shape risk did not materialize** — the Ashland fixture and the live records both include the suffix in `STREETNAME` (`"SISKIYOU BLVD"`), so `LIKE 'DIANE ST%'` works as designed.
+- **respx ordered mocking with `side_effect=[...]` is the right tool** for testing the multi-call branch (primary → sibling fetch → geometry refetch). Single-mock form is still preferred for single-call tests.
