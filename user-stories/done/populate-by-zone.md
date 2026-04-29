@@ -278,4 +278,9 @@ Zone mismatch shows inline warning text beneath the badge.
 
 ## Learnings
 
-[to be filled in by Claude after implementation]
+- **Backend has no undelete path; undo is a frontend deferral.** The CRUD `update_entry` rejects rows where `deleted_at` is set, so the spec's "Undo issues PATCH clearing `deleted_at`" approach doesn't work. The implementation defers the network DELETE for 5 seconds — if the user clicks Undo, we cancel the timer and the row never leaves the cache. Tradeoff accepted: undo doesn't survive page reload (the soft-deleted row only exists optimistically client-side until the timer fires). Adequate for V1; flagged in `ZonePlantLists.tsx` comment.
+- **Pending-delete chaining matters.** If a second delete fires while a previous undo is still pending, the previous one must be committed (timer cleared, DELETE fired immediately) so we don't lose track of it. Without this, fast successive deletes leave orphaned timers and incorrect cache state.
+- **Optimistic create needs a temp ID swap on success.** Storing the temporary ID in the mutation context lets `onSuccess` swap the placeholder for the real server entity without reordering the list.
+- **`prefers-reduced-motion` belongs in global CSS, not per-component.** A single `@media (prefers-reduced-motion: reduce)` block in `index.css` neutralizes all transitions/animations site-wide — far simpler than threading a media-query check through each animated component.
+- **Suitability resolution is read-only off the existing plant cache.** `PlantEntryRow` reuses the all-zones `fetchPlants` query (already cached by the search) to look up scientific name + rated zones — no extra endpoint, no per-row fetch.
+- **Carved out as separate story:** axe-core test integration + cross-component keyboard E2E (`backlog/axe-core-and-keyboard-e2e.md`).
