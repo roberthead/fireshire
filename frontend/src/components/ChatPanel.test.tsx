@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ChatPanel } from './ChatPanel'
+import { axeCheck } from '../test-utils/a11y'
 
 const encoder = new TextEncoder()
 
@@ -104,5 +105,24 @@ describe('ChatPanel', () => {
     await waitFor(() => {
       expect(screen.getByRole('alert').textContent).toBe('Internal server error')
     })
+  })
+
+  it('has no axe violations in idle state', async () => {
+    const { container } = render(<ChatPanel {...defaultProps} />)
+    expect(await axeCheck(container)).toHaveNoViolations()
+  })
+
+  it('has no axe violations after a streamed response', async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      body: makeSSEStream(['data: Hello world\n\n', 'data: [DONE]\n\n']),
+    })
+
+    const { container } = render(<ChatPanel {...defaultProps} />)
+    const input = screen.getByPlaceholderText('Ask about fire-resilient landscaping...')
+    fireEvent.change(input, { target: { value: 'Hi' } })
+    fireEvent.click(screen.getByLabelText('Send message'))
+    await waitFor(() => expect(screen.getByText('Hello world')).toBeTruthy())
+    expect(await axeCheck(container)).toHaveNoViolations()
   })
 })

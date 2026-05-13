@@ -129,3 +129,16 @@ Buffer each building polygon independently, then `turf.union` same-zone rings to
 - Switching overlays from `position: absolute` to `position: static` at breakpoints lets them flow naturally in flex column layout
 - 44px minimum touch targets should be universal (not behind a media query) per WCAG 2.5.8
 - CSS custom properties in `:root` maintain a consistent spacing/color/typography system across components
+
+### Accessibility Testing
+- Use `vitest-axe` (not `jest-axe`) on Vitest. Its bundled `extend-expect` targets the old `Vi.Assertion` namespace, which Vitest 4 removed — augment `Matchers<T>` in `@vitest/expect` instead (the documented user-extension point) to get `toHaveNoViolations()` types.
+- A `.d.ts` augmentation file in `src/` is picked up via tsconfig's `include` glob; do NOT also `import` it at runtime — Vite/Vitest will fail to resolve a type-only file.
+- Configure axe with `runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] }` for an MVP-appropriate bar. The `best-practice` rules surface false positives in jsdom.
+- axe in jsdom CANNOT verify visible focus indicators (WCAG 2.4.7) or composited contrast under `backdrop-filter` (1.4.3 computes from declared colors, not pixels). Note this caveat in test files so future maintainers don't think axe-green means fully a11y-clean.
+- Scope `axeCheck(container)` to the rendered container, not `document.body`, to keep per-test cost in the 200–500ms range.
+- When the same string appears in both the visible UI and an sr-only announcer, `findByText` will fail. Differentiate: the announcer gets a *summary* (e.g., "No matches found."), the banner gets the verbose human copy.
+
+### Keyboard Testing
+- jsdom does NOT move focus when a Tab keydown fires, and it does NOT translate Enter/Space on a focused button into a click. A custom `pressKey()` that mirrors browser semantics (click on Enter/Space for buttons) plus a `pressTab()` focus walker over a focusable-element query is the cheapest way to write keyboard E2Es without `@testing-library/user-event`.
+- React re-parents components when their parent changes (e.g., a plant moves zones → different `<ul>`). Focus is lost on re-mount. Don't try to chase tab order across re-parenting — use direct `.focus()` + `pressKey('Enter')` and document why; it's still keyboard-driven activation.
+- `queueMicrotask` focus restoration inside React update cycles is racy from a test's perspective. Prefer asserting "the element is reachable and Enter activates it" over "focus returned to the expected anchor."

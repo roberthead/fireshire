@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor, act, cleanup } from '@testing-libra
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ZonePlantLists } from './ZonePlantLists'
 import type { PlantEntry } from '../lib/api'
+import { axeCheck } from '../test-utils/a11y'
 
 vi.mock('../lib/api', async () => {
   const actual = await vi.importActual('../lib/api')
@@ -219,6 +220,38 @@ describe('ZonePlantLists', () => {
     })
     vi.useRealTimers()
     await waitFor(() => expect(mockDeleteEntry).toHaveBeenCalledWith('del-2'))
+  })
+
+  it('has no axe violations in empty populated state', async () => {
+    mockFetchEntries.mockResolvedValue({ entries: [] })
+    const { container } = renderWithQuery(
+      <ZonePlantLists taxlotId="T1" hasBuildings onClose={() => {}} />,
+    )
+    await waitFor(() => expect(mockFetchEntries).toHaveBeenCalled())
+    await screen.findByText('Add the first plant in Zone 1')
+    expect(await axeCheck(container)).toHaveNoViolations()
+  })
+
+  it('has no axe violations with plants in zones', async () => {
+    mockFetchEntries.mockResolvedValue({
+      entries: [
+        entry({ id: 'a', zone: '0-5', plant_name: 'Lawn' }),
+        entry({ id: 'b', zone: '10-30', plant_name: 'Mint' }),
+        entry({ id: 'c', zone: '30-100', plant_name: 'Oak' }),
+      ],
+    })
+    const { container } = renderWithQuery(
+      <ZonePlantLists taxlotId="T1" hasBuildings onClose={() => {}} />,
+    )
+    await screen.findByText('Mint')
+    expect(await axeCheck(container)).toHaveNoViolations()
+  })
+
+  it('has no axe violations in disabled (no buildings) state', async () => {
+    const { container } = renderWithQuery(
+      <ZonePlantLists taxlotId="T1" hasBuildings={false} onClose={() => {}} />,
+    )
+    expect(await axeCheck(container)).toHaveNoViolations()
   })
 
   it('move chip calls updateEntry and announces', async () => {

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AddressSearch } from './AddressSearch'
 import type { SearchEnvelope } from '../lib/api'
 import { ApiError } from '../lib/api'
+import { axeCheck } from '../test-utils/a11y'
 
 type RawShape = { taxlot_id: string }
 
@@ -186,5 +187,33 @@ describe('AddressSearch', () => {
   it('input has autocomplete="street-address"', () => {
     renderSearch()
     expect((screen.getByLabelText('Address') as HTMLInputElement).getAttribute('autocomplete')).toBe('street-address')
+  })
+
+  it('has no axe violations in idle state', async () => {
+    const { container } = renderSearch()
+    expect(await axeCheck(container)).toHaveNoViolations()
+  })
+
+  it('has no axe violations with disambiguation results visible', async () => {
+    const searchFn = vi.fn(async () =>
+      envelope([
+        { id: 'T1', address: '570 SISKIYOU BLVD' },
+        { id: 'T2', address: '572 SISKIYOU BLVD' },
+      ]),
+    )
+    const { container } = renderSearch({ searchFn })
+    submit('Siskiyou')
+    await screen.findByRole('button', { name: '570 SISKIYOU BLVD' })
+    expect(await axeCheck(container)).toHaveNoViolations()
+  })
+
+  it('has no axe violations with "Did you mean…?" suggestions visible', async () => {
+    const searchFn = vi.fn(async () =>
+      envelope([], [{ id: 'X', address: '2770 DIANE ST' }]),
+    )
+    const { container } = renderSearch({ searchFn })
+    submit('2770 Dianne St')
+    await screen.findByText('Did you mean…?')
+    expect(await axeCheck(container)).toHaveNoViolations()
   })
 })

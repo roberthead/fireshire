@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { featureCollection } from '@turf/turf'
 import type { ZoneResult } from '../lib/computeZoneRings'
 import { ZoneSummary } from './ZoneSummary'
+import { axeCheck } from '../test-utils/a11y'
 
 const emptyZones: ZoneResult = {
   zone1: featureCollection([]),
@@ -43,5 +44,12 @@ describe('ZoneSummary', () => {
     const liveRegion = document.querySelector('[aria-live="polite"]')
     expect(liveRegion).toBeInTheDocument()
     expect(liveRegion).toHaveTextContent('Zone analysis complete for 455 Siskiyou Blvd')
+  })
+
+  it('has no axe violations', async () => {
+    const { container } = render(
+      <ZoneSummary address="455 Siskiyou Blvd" taxlotId="TX1" buildingCount={3} zones={emptyZones} />,
+    )
+    expect(await axeCheck(container)).toHaveNoViolations()
   })
 })
