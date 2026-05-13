@@ -89,12 +89,28 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 
 // ── API functions ───────────────────────────────────────────────────────────
 
-export function searchParcels(address: string): Promise<AllClearParcel[]> {
-  return fetchJson(`/api/allclear/parcels/search?address=${encodeURIComponent(address)}`)
-}
-
 export function getParcel(hashCode: string): Promise<AllClearParcel> {
   return fetchJson(`/api/allclear/parcels/${encodeURIComponent(hashCode)}`)
+}
+
+export interface ParcelResolveInput {
+  map_taxlot: string
+  situs_address?: string | null
+  owner_name?: string | null
+  acreage?: number | null
+}
+
+export interface ParcelResolveResult {
+  hash_code: string
+  created: boolean
+}
+
+export function resolveParcel(input: ParcelResolveInput): Promise<ParcelResolveResult> {
+  return fetchJson('/api/allclear/parcels/resolve', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
 }
 
 export function getProgress(hashCode: string): Promise<Progress> {

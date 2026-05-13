@@ -1,12 +1,29 @@
 """AllClear endpoints — parcel lookup, survey submission, progress tracking, HOA list."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+import hashlib
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import select, func, or_
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.models import Parcel, UserProgress, SurveyResponse, MapResult
+
+
+SYNTHETIC_HASH_PREFIX = "g"
+SYNTHETIC_HASH_LEN = 15  # plus the 1-char prefix = 16 chars total (Parcel.hash_code length)
+
+
+def _synthetic_hash_code(map_taxlot: str, role: str = "owner") -> str:
+    """Deterministic hash for GIS-discovered parcels not yet in AllClear seed.
+
+    AllClear's upstream codes don't start with ``g`` — the prefix guarantees no
+    collision with seed data. Stable across requests for the same taxlot+role.
+    """
+    digest = hashlib.sha1(f"{map_taxlot}:{role}".encode()).hexdigest()
+    return SYNTHETIC_HASH_PREFIX + digest[:SYNTHETIC_HASH_LEN]
 
 router = APIRouter(prefix="/allclear", tags=["allclear"])
 
@@ -66,29 +83,19 @@ class HOAOut(BaseModel):
     phone: str | None
 
 
-# ── Parcel search ────────────────────────────────────────────────────────────
+class ParcelResolveIn(BaseModel):
+    map_taxlot: str
+    situs_address: str | None = None
+    owner_name: str | None = None
+    acreage: float | None = None
 
 
-@router.get("/parcels/search", response_model=list[ParcelOut])
-async def search_parcels(
-    address: str = Query(..., min_length=2),
-    db: AsyncSession = Depends(get_db),
-):
-    """Fuzzy search parcels by situs address using trigram similarity."""
-    normalized = " ".join(address.upper().split())
-    stmt = (
-        select(Parcel)
-        .where(
-            or_(
-                func.similarity(func.upper(Parcel.situs_address), normalized) > 0.15,
-                func.upper(Parcel.situs_address).contains(normalized),
-            )
-        )
-        .order_by(func.similarity(func.upper(Parcel.situs_address), normalized).desc())
-        .limit(10)
-    )
-    result = await db.execute(stmt)
-    return [ParcelOut.model_validate(row.__dict__) for row in result.scalars().all()]
+class ParcelResolveOut(BaseModel):
+    hash_code: str
+    created: bool
+
+
+# ── Parcel lookup ────────────────────────────────────────────────────────────
 
 
 @router.get("/parcels/{hash_code}", response_model=ParcelOut)
@@ -98,6 +105,60 @@ async def get_parcel(hash_code: str, db: AsyncSession = Depends(get_db)):
     if not parcel:
         raise HTTPException(status_code=404, detail="Parcel not found")
     return ParcelOut.model_validate(parcel.__dict__)
+
+
+@router.post("/parcels/resolve", response_model=ParcelResolveOut)
+async def resolve_parcel(
+    body: ParcelResolveIn,
+    db: AsyncSession = Depends(get_db),
+):
+    """Find-or-create a parcel row for a GIS-discovered taxlot.
+
+    Looks up by (map_taxlot, role='owner'). Returns the existing hash_code if
+    present; otherwise inserts a row with a synthetic ``g``-prefixed hash and
+    returns it. Idempotent.
+    """
+    map_taxlot = body.map_taxlot.strip()
+    if not map_taxlot:
+        raise HTTPException(status_code=422, detail="map_taxlot is required")
+
+    existing = await db.execute(
+        select(Parcel.hash_code)
+        .where(Parcel.map_taxlot == map_taxlot, Parcel.role == "owner")
+        .limit(1)
+    )
+    hit = existing.scalar_one_or_none()
+    if hit is not None:
+        return ParcelResolveOut(hash_code=hit, created=False)
+
+    hash_code = _synthetic_hash_code(map_taxlot, role="owner")
+    db.add(
+        Parcel(
+            hash_code=hash_code,
+            account=map_taxlot,
+            role="owner",
+            map_taxlot=map_taxlot,
+            situs_address=body.situs_address,
+            owner_name=body.owner_name,
+            acreage=body.acreage,
+            city="ASHLAND",
+        )
+    )
+    try:
+        await db.commit()
+        return ParcelResolveOut(hash_code=hash_code, created=True)
+    except IntegrityError:
+        # Concurrent insert race — the other writer beat us. Re-fetch the row.
+        await db.rollback()
+        retry = await db.execute(
+            select(Parcel.hash_code)
+            .where(Parcel.map_taxlot == map_taxlot, Parcel.role == "owner")
+            .limit(1)
+        )
+        winner = retry.scalar_one_or_none()
+        if winner is None:
+            raise HTTPException(status_code=500, detail="resolve race could not be reconciled")
+        return ParcelResolveOut(hash_code=winner, created=False)
 
 
 # ── Progress tracking ────────────────────────────────────────────────────────

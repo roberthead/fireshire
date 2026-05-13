@@ -1,45 +1,55 @@
 import { useState } from "react";
 import { computeZoneAreas } from "../lib/computeZoneAreas";
 import type { ZoneResult } from "../lib/computeZoneRings";
-import { searchParcels, saveMapResult } from "../lib/allclearApi";
+import { resolveParcel, saveMapResult } from "../lib/allclearApi";
 
 export interface ZoneSummaryProps {
   address: string;
+  taxlotId: string | null;
+  owner?: string;
+  acreage?: number | null;
   buildingCount: number;
   zones: ZoneResult;
 }
 
-export function ZoneSummary({ address, buildingCount, zones }: ZoneSummaryProps) {
+export function ZoneSummary({
+  address,
+  taxlotId,
+  owner,
+  acreage,
+  buildingCount,
+  zones,
+}: ZoneSummaryProps) {
   const areas = computeZoneAreas(zones);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
+    if (!taxlotId) {
+      setError("This property has no taxlot identifier — can't save.");
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
-      // Match address to an AllClear parcel
-      const parcels = await searchParcels(address);
-      if (parcels.length === 0) {
-        setError("Property not found in our database.");
-        setSaving(false);
-        return;
-      }
-      const parcel = parcels[0];
+      const { hash_code } = await resolveParcel({
+        map_taxlot: taxlotId,
+        situs_address: address,
+        owner_name: owner ?? null,
+        acreage: acreage ?? null,
+      });
 
-      // Save map result and mark map_complete
-      const result = await saveMapResult(parcel.hash_code, {
+      const result = await saveMapResult(hash_code, {
         buildings_count: buildingCount,
       });
 
       setSaved(true);
 
-      // Check if survey is done — if not, redirect
       if (!result.survey_complete) {
-        window.location.href = `/survey/${parcel.hash_code}`;
+        window.location.href = `/survey/${hash_code}`;
       } else {
-        window.location.href = `/complete/${parcel.hash_code}`;
+        window.location.href = `/complete/${hash_code}`;
       }
     } catch {
       setError("Could not save. Please try again.");

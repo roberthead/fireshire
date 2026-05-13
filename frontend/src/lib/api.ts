@@ -21,6 +21,30 @@ export interface ParcelResponse {
   suggestions: Suggestion[]
 }
 
+// ── Shared search view model ────────────────────────────────────────────────
+// Normalized shape consumed by <AddressSearch>. Domain-specific fetch helpers
+// (GIS parcels, AllClear parcels, etc.) adapt their results into this once at
+// the API-client boundary so the component stays non-generic.
+
+import type { ReactNode } from 'react'
+
+export interface SearchResult<TRaw = unknown> {
+  id: string
+  address: string
+  meta?: ReactNode
+  raw: TRaw
+}
+
+export interface SearchSuggestion {
+  id: string
+  address: string
+}
+
+export interface SearchEnvelope<TRaw = unknown> {
+  parcels: SearchResult<TRaw>[]
+  suggestions: SearchSuggestion[]
+}
+
 import type { FeatureCollection, Polygon, MultiPolygon } from 'geojson'
 
 export type BuildingResponse = FeatureCollection<Polygon | MultiPolygon>
@@ -39,20 +63,33 @@ export class ApiError extends Error {
   }
 }
 
-export async function fetchParcels(address: string): Promise<ParcelResponse> {
+export async function fetchParcels(address: string): Promise<SearchEnvelope<Parcel>> {
+  let raw: ParcelResponse
   try {
     const res = await fetch(`/api/parcels?address=${encodeURIComponent(address)}`)
     if (!res.ok) {
       const body = await res.json().catch(() => null)
       throw new ApiError(res.status, body?.error ?? null, body?.detail ?? 'Server error')
     }
-    return res.json()
+    raw = await res.json()
   } catch (err) {
     if (err instanceof ApiError) throw err
     if (err instanceof TypeError) {
       throw new ApiError(0, 'network_error', "We can't reach our server right now. Please check your connection and try again.")
     }
     throw err
+  }
+
+  return {
+    parcels: raw.parcels.map((p) => ({
+      id: p.taxlot_id ?? p.address,
+      address: p.address,
+      raw: p,
+    })),
+    suggestions: raw.suggestions.map((s) => ({
+      id: s.taxlot_id,
+      address: s.address,
+    })),
   }
 }
 

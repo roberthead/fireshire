@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { useNavigate, createFileRoute } from '@tanstack/react-router'
-import { searchParcels, type AllClearParcel } from '../lib/allclearApi'
+import { AddressSearch } from '../components/AddressSearch'
+import { fetchParcels, type Parcel } from '../lib/api'
+import { resolveParcel } from '../lib/allclearApi'
 
 export const Route = createFileRoute('/prepare')({
   component: PreparePage,
@@ -20,9 +21,10 @@ function PreparePage() {
           Assess your property's fire preparedness in minutes.
         </p>
 
-        <div className="prepare-toggle">
+        <div className="prepare-toggle" role="group" aria-label="Choose your role">
           <button
             type="button"
+            aria-pressed={mode === 'samaritan'}
             className={`toggle-btn ${mode === 'samaritan' ? 'toggle-btn--active' : ''}`}
             onClick={() => setMode('samaritan')}
           >
@@ -30,6 +32,7 @@ function PreparePage() {
           </button>
           <button
             type="button"
+            aria-pressed={mode === 'hoa'}
             className={`toggle-btn ${mode === 'hoa' ? 'toggle-btn--active' : ''}`}
             onClick={() => setMode('hoa')}
           >
@@ -43,27 +46,31 @@ function PreparePage() {
   )
 }
 
-// ── Samaritan Flow ──────────────────────────────────────────────────────────
-
 function SamaritanFlow() {
-  const [address, setAddress] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
   const navigate = useNavigate()
+  const [resolving, setResolving] = useState(false)
+  const [resolveError, setResolveError] = useState<string | null>(null)
 
-  const { data: parcels, isFetching } = useQuery({
-    queryKey: ['allclear-parcels', searchTerm],
-    queryFn: () => searchParcels(searchTerm),
-    enabled: searchTerm.length >= 2,
-  })
-
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    if (address.trim().length < 2) return
-    setSearchTerm(address.trim())
-  }
-
-  function handleSelect(parcel: AllClearParcel) {
-    navigate({ to: '/survey/$hashCode', params: { hashCode: parcel.hash_code } })
+  async function handleSelect(result: { raw: Parcel; address: string }) {
+    const taxlot = result.raw.taxlot_id
+    if (!taxlot) {
+      setResolveError("That property has no taxlot identifier — we can't start a survey for it.")
+      return
+    }
+    setResolving(true)
+    setResolveError(null)
+    try {
+      const { hash_code } = await resolveParcel({
+        map_taxlot: taxlot,
+        situs_address: result.address,
+        owner_name: result.raw.owner,
+        acreage: result.raw.acreage,
+      })
+      navigate({ to: '/survey/$hashCode', params: { hashCode: hash_code } })
+    } catch (err) {
+      setResolveError(err instanceof Error ? err.message : 'Failed to start your survey.')
+      setResolving(false)
+    }
   }
 
   return (
@@ -71,55 +78,30 @@ function SamaritanFlow() {
       <p className="flow-description">
         Enter your street address to find your property and start your fire preparedness survey.
       </p>
-      <form onSubmit={handleSubmit} className="search-form prepare-search">
-        <input
-          type="text"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          placeholder="e.g. 455 Siskiyou Blvd"
-          aria-label="Your Ashland property address"
-          className="search-input prepare-input"
-        />
-        <button
-          type="submit"
-          disabled={isFetching || address.trim().length < 2}
-          className="search-button"
-        >
-          {isFetching ? 'Searching...' : 'Find My Property'}
-        </button>
-      </form>
-
-      {parcels && parcels.length === 0 && searchTerm && (
-        <div className="prepare-message prepare-message--warning">
-          No properties found for that address. This tool currently covers Ashland, OR.
-        </div>
+      <AddressSearch<Parcel>
+        searchFn={fetchParcels}
+        queryKey="parcels"
+        inputAriaLabel="Your Ashland property address"
+        placeholder="e.g. 455 Siskiyou Blvd"
+        submitLabel="Find My Property"
+        emptyHint="We cover properties inside Ashland city limits."
+        autoSelectSingle={false}
+        autoResubmitSuggestions={false}
+        onSelect={handleSelect}
+      />
+      {resolving && (
+        <p className="prepare-message" role="status" aria-live="polite">
+          Starting your survey…
+        </p>
       )}
-
-      {parcels && parcels.length > 0 && (
-        <ul className="prepare-results">
-          {parcels.map((p) => (
-            <li key={p.hash_code}>
-              <button
-                type="button"
-                className="prepare-result-item"
-                onClick={() => handleSelect(p)}
-              >
-                <span className="result-address">{p.situs_address}</span>
-                <span className="result-meta">
-                  {p.owner_name}
-                  {p.acreage ? ` · ${p.acreage} ac` : ''}
-                  {p.role === 'owner' ? ' · Owner' : ' · Occupant'}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+      {resolveError && (
+        <p className="prepare-message prepare-message--warning" role="alert">
+          {resolveError}
+        </p>
       )}
     </div>
   )
 }
-
-// ── HOA Flow ────────────────────────────────────────────────────────────────
 
 function HOAFlow() {
   const [copied, setCopied] = useState(false)

@@ -8,9 +8,11 @@ import { ZoneSummary } from '../components/ZoneSummary'
 import { ZonePlantLists } from '../components/ZonePlantLists'
 import { MapView } from '../components/MapView'
 import { MapProvider } from '../contexts/MapContext'
+import { useMapContext } from '../hooks/useMapContext'
 import { ZoneOverlay } from '../components/ZoneOverlay'
 import { computeZoneRings } from '../lib/computeZoneRings'
-import { fetchBuildings, ApiError, type Parcel } from '../lib/api'
+import { fetchBuildings, fetchParcels, ApiError, type Parcel } from '../lib/api'
+import { showParcelOnMap } from '../lib/mapHelpers'
 import { StatusBanner } from '../components/StatusBanner'
 
 export const Route = createFileRoute('/')({
@@ -59,7 +61,13 @@ function HomePage() {
   return (
     <MapProvider>
       <div className="overlay-top-left">
-        <AddressSearch initialAddress={initialAddress} onParcelSelected={(parcel) => { setSelectedParcel(parcel); setPlantPanelOpen(true) }} />
+        <MapAddressSearch
+          initialAddress={initialAddress}
+          onParcelSelected={(parcel) => {
+            setSelectedParcel(parcel)
+            setPlantPanelOpen(true)
+          }}
+        />
       </div>
       {buildingsFetching && selectedParcel && (
         <div className="overlay-below-search">
@@ -92,6 +100,9 @@ function HomePage() {
         <div className="overlay-bottom-left">
           <ZoneSummary
             address={selectedParcel.address}
+            taxlotId={selectedParcel.taxlot_id}
+            owner={selectedParcel.owner}
+            acreage={selectedParcel.acreage}
             buildingCount={buildings.features.length}
             zones={zones}
           />
@@ -112,5 +123,27 @@ function HomePage() {
         <ZoneOverlay buildings={buildings} parcel={selectedParcel} />
       )}
     </MapProvider>
+  )
+}
+
+function MapAddressSearch({
+  initialAddress,
+  onParcelSelected,
+}: {
+  initialAddress?: string
+  onParcelSelected: (parcel: Parcel) => void
+}) {
+  const { map } = useMapContext()
+  return (
+    <AddressSearch<Parcel>
+      searchFn={fetchParcels}
+      queryKey="parcels"
+      initialAddress={initialAddress}
+      inputAriaLabel="Ashland property address"
+      onSelect={(result) => {
+        if (map) showParcelOnMap(map, result.raw)
+        onParcelSelected(result.raw)
+      }}
+    />
   )
 }

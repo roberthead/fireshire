@@ -73,10 +73,9 @@ const stories = {
     { id: 'BACKLOG', title: 'Identify Plants from Photos via PlantNet', summary: 'Photo-upload flow that calls PlantNet to identify plants and adds them to a fire zone', size: 'L', priority: 'P3' },
     { id: 'BACKLOG', title: 'Pin Plants', summary: '(placeholder — story not yet drafted)', size: 'S', priority: 'P3' },
   ],
-  current: [
-    { id: 'CURRENT', title: 'Address Search On Prepare', summary: '(placeholder — story not yet drafted)', size: 'S', priority: 'P3' },
-  ],
+  current: [],
   done: [
+    { id: '19', title: 'Address Search On Prepare', summary: 'Unify map + prepare on a single GIS-backed search with shared <AddressSearch> component; resolve endpoint mints AllClear hash_codes on first touch with synthetic g-prefix', size: 'M', priority: 'P1' },
     { id: '18', title: 'Populate Plants by Fire Zone', summary: 'DB-backed per-zone plant lists for the active parcel: add/move/delete with 5s undo, suitability badges, Ask Rascal stub', size: 'M', priority: 'P2' },
     { id: '17', title: 'Flexible Address Matching', summary: 'Suffix/directional normalization, parsed-field query, rapidfuzz fallback with "Did you mean…?" suggestions, and SQL-injection escaping', size: 'M', priority: 'P2' },
     { id: '16', title: 'Zone Geometry Ring Differencing', summary: 'Cross-building subtraction pass so each zone only covers its proper distance band from ALL structures', size: 'M', priority: 'P1' },

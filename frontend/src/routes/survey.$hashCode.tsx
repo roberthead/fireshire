@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import {
@@ -50,6 +50,13 @@ function SurveyPage() {
   const [prefilled, setPrefilled] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const titleRef = useRef<HTMLHeadingElement>(null)
+
+  useEffect(() => {
+    // Focus the page title on mount so keyboard/screen-reader users land in
+    // context after navigating from /prepare (WCAG 2.4.3).
+    titleRef.current?.focus()
+  }, [])
 
   const { data: parcel, isLoading: parcelLoading, error: parcelError } = useQuery({
     queryKey: ['allclear-parcel', hashCode],
@@ -129,7 +136,7 @@ function SurveyPage() {
   return (
     <div className="survey-page">
       <div className="survey-container">
-        <h1 className="survey-title">Fire Preparedness Survey</h1>
+        <h1 className="survey-title" ref={titleRef} tabIndex={-1}>Fire Preparedness Survey</h1>
         <p className="survey-subtitle">Ashland, Oregon</p>
 
         {progress?.survey_complete && (
