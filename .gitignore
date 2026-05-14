@@ -21,3 +21,5 @@ pgdata/
 
 # Playwright MCP session artifacts
 .playwright-mcp/
+
+.claude/
