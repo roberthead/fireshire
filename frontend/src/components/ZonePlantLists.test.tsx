@@ -186,7 +186,8 @@ describe('ZonePlantLists', () => {
     )
     await screen.findByText('Mint')
 
-    // Switch to fake timers only for the undo window
+    // Open the card → lightbox → click Delete inside it.
+    fireEvent.click(screen.getByRole('button', { name: /Mint.*Open details/i }))
     vi.useFakeTimers()
     fireEvent.click(screen.getByLabelText('Delete Mint'))
     expect(screen.queryByText('Mint')).toBeNull()
@@ -212,6 +213,7 @@ describe('ZonePlantLists', () => {
       <ZonePlantLists taxlotId="T1" hasBuildings onClose={() => {}} />,
     )
     await screen.findByText('Mint')
+    fireEvent.click(screen.getByRole('button', { name: /Mint.*Open details/i }))
     vi.useFakeTimers()
     fireEvent.click(screen.getByLabelText('Delete Mint'))
     expect(screen.queryByText('Mint')).toBeNull()
@@ -265,12 +267,30 @@ describe('ZonePlantLists', () => {
       <ZonePlantLists taxlotId="T1" hasBuildings onClose={() => {}} />,
     )
     await screen.findByText('Mint')
+    // Open the card to reveal the move chips inside the lightbox.
+    fireEvent.click(screen.getByRole('button', { name: /Mint.*Open details/i }))
     fireEvent.click(screen.getByLabelText('Move to Zone 30-100'))
     await waitFor(() => expect(mockUpdateEntry).toHaveBeenCalled())
     expect(mockUpdateEntry.mock.calls[0].slice(0, 2)).toEqual([
       'm1',
       { zone: '30-100' },
     ])
+  })
+
+  it('opens the lightbox when a card is clicked and closes on ESC', async () => {
+    mockFetchEntries.mockResolvedValue({
+      entries: [entry({ id: 'open-1', zone: '10-30', plant_name: 'Mint' })],
+    })
+    renderWithQuery(
+      <ZonePlantLists taxlotId="T1" hasBuildings onClose={() => {}} />,
+    )
+    await screen.findByText('Mint')
+
+    fireEvent.click(screen.getByRole('button', { name: /Mint.*Open details/i }))
+    expect(screen.getByRole('dialog')).toBeTruthy()
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 })
 

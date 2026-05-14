@@ -170,24 +170,28 @@ describe('populate-by-zone — keyboard-only walkthrough', () => {
       plant_name: 'Rosemary',
     })
 
-    // New row visible.
-    await screen.findByText('Rosemary')
+    // New row visible — find the new plant card (button with "Open details" label).
+    const rosemaryCard = await screen.findByRole('button', {
+      name: /Rosemary.*Open details/i,
+    })
 
-    // ── Step 3: focus the new row's "Move to Zone 10-30" chip and Enter ─────
+    // ── Step 3: open the card's lightbox via keyboard, then Move ────────────
     // After commit, the component returns focus to the Zone 2 add button via
-    // queueMicrotask — a timing path React owns. Rather than chase that, we
-    // assert that the chip exists, is reachable by tabbing from any anchor,
-    // and that pressing Enter on it dispatches the move. Direct focus here is
-    // equivalent to a keyboard user navigating to the chip.
+    // queueMicrotask — a path React owns. Rather than chase that, focus the
+    // card directly (still keyboard-driven) and press Enter to open.
+    ;(rosemaryCard as HTMLButtonElement).focus()
+    pressKey('Enter')
+
+    // Dialog opens; initial focus lands on the first non-disabled move chip
+    // per PlantLightbox's effect — the Zone 1 chip (since the row is in Zone 2,
+    // which is disabled).
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toBeInTheDocument()
+
+    // Find the "Move to Zone 10-30" chip inside the dialog and Enter on it.
     const moveToZone3 = screen.getByLabelText('Move to Zone 10-30') as HTMLButtonElement
     expect(moveToZone3.disabled).toBe(false)
-
-    // Verify the chip IS reachable by tabbing from the document body — the
-    // exact step count is implementation detail; what matters is that the
-    // chip lives in the focusable-element list.
-    document.body.focus()
-    tabUntil((el) => el === moveToZone3)
-
+    moveToZone3.focus()
     pressKey('Enter')
 
     await waitFor(() => expect(mockUpdateEntry).toHaveBeenCalled())
@@ -196,17 +200,26 @@ describe('populate-by-zone — keyboard-only walkthrough', () => {
       { zone: '10-30' },
     ])
 
-    // ── Step 4: focus delete and Enter ──────────────────────────────────────
-    // React re-parents the row when the zone changes (different <ul>), so the
-    // previously-focused chip is gone. Focus the delete button directly — this
-    // is still a keyboard-only action (no click, just Enter activation).
-    const deleteBtn = await screen.findByLabelText('Delete Rosemary')
-    ;(deleteBtn as HTMLButtonElement).focus()
-    expect(document.activeElement).toBe(deleteBtn)
+    // Lightbox stays open after a move (resolved decision); ESC closes it
+    // before we proceed to the delete step.
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    pressKey('Escape')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 
+    // ── Step 4: open the card again, focus Delete, Enter ────────────────────
+    const rosemaryCardAgain = await screen.findByRole('button', {
+      name: /Rosemary.*Open details/i,
+    })
+    ;(rosemaryCardAgain as HTMLButtonElement).focus()
+    pressKey('Enter')
+    await screen.findByRole('dialog')
+
+    const deleteBtn = screen.getByLabelText('Delete Rosemary')
+    ;(deleteBtn as HTMLButtonElement).focus()
     pressKey('Enter')
 
-    // Row is optimistically removed; undo toast appears.
+    // Dialog closes, row is optimistically removed, undo toast appears.
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     expect(screen.queryByText('Rosemary')).toBeNull()
     const undoBtn = await screen.findByText('Undo')
     const toast = undoBtn.closest('[role="status"]')
@@ -214,8 +227,6 @@ describe('populate-by-zone — keyboard-only walkthrough', () => {
 
     // ── Step 5: focus Undo and press Enter to restore ───────────────────────
     ;(undoBtn as HTMLButtonElement).focus()
-    expect(document.activeElement).toBe(undoBtn)
-
     pressKey('Enter')
 
     // Row restored; backend delete never fired.

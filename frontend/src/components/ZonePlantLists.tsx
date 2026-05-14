@@ -9,7 +9,8 @@ import {
   type ZoneKey,
 } from '../lib/api'
 import { AddPlantCombobox } from './AddPlantCombobox'
-import { PlantEntryRow } from './PlantEntryRow'
+import { PlantCardGrid } from './PlantCardGrid'
+import { PlantLightbox } from './PlantLightbox'
 import { StatusBanner } from './StatusBanner'
 import { ChatPanel } from './ChatPanel'
 
@@ -46,6 +47,7 @@ export function ZonePlantLists({
 }: ZonePlantListsProps) {
   const queryClient = useQueryClient()
   const [openZone, setOpenZone] = useState<ZoneKey | null>(null)
+  const [openEntryId, setOpenEntryId] = useState<string | null>(null)
   const [announcement, setAnnouncement] = useState('')
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null)
   const [showExplainer, setShowExplainer] = useState(false)
@@ -233,6 +235,21 @@ export function ZonePlantLists({
     setChatOpen(true)
   }
 
+  async function handleUpdateNotes(entry: PlantEntry, notes: string) {
+    await new Promise<void>((resolve, reject) => {
+      updateMutation.mutate(
+        { id: entry.id, data: { notes } },
+        { onSuccess: () => resolve(), onError: (err) => reject(err) },
+      )
+    })
+    setAnnouncement(`${entry.plant_name} description saved.`)
+  }
+
+  const openEntry = useMemo(
+    () => (openEntryId ? entries.find((e) => e.id === openEntryId) ?? null : null),
+    [openEntryId, entries],
+  )
+
   // Focus the chat input when it becomes visible
   useEffect(() => {
     if (chatOpen) {
@@ -344,17 +361,10 @@ export function ZonePlantLists({
                 )}
 
                 {zoneEntries.length > 0 && (
-                  <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                    {zoneEntries.map((entry) => (
-                      <PlantEntryRow
-                        key={entry.id}
-                        entry={entry}
-                        onMove={handleMove}
-                        onDelete={handleDelete}
-                        onAskRascal={handleAskRascal}
-                      />
-                    ))}
-                  </ul>
+                  <PlantCardGrid
+                    entries={zoneEntries}
+                    onOpen={(e) => setOpenEntryId(e.id)}
+                  />
                 )}
 
                 {isOpen ? (
@@ -391,6 +401,17 @@ export function ZonePlantLists({
         <div style={{ height: '55vh', minHeight: 320 }}>
           <ChatPanel address={address} zones={ZONES.map((z) => z.key)} plants={[]} />
         </div>
+      )}
+
+      {openEntry && (
+        <PlantLightbox
+          entry={openEntry}
+          onClose={() => setOpenEntryId(null)}
+          onMove={handleMove}
+          onAskRascal={handleAskRascal}
+          onDelete={handleDelete}
+          onUpdateNotes={handleUpdateNotes}
+        />
       )}
 
       {pendingDelete && (
