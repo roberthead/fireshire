@@ -1,4 +1,5 @@
 import csv
+import logging
 import os
 from contextlib import asynccontextmanager
 
@@ -15,6 +16,8 @@ from app.services.plants_client import PlantsApiError, plants_client
 
 # Import models so Base.metadata knows about them
 import app.models  # noqa: F401
+
+logger = logging.getLogger(__name__)
 
 
 def _load_hoa_csv() -> list[dict]:
@@ -36,16 +39,23 @@ def _load_hoa_csv() -> list[dict]:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create tables if they don't exist (safe for Neon — idempotent)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Create tables if they don't exist (safe for Neon — idempotent).
+    # If the DB is unreachable, log and continue so GIS-proxy routes still work.
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    except Exception:
+        logger.exception("Database unavailable at startup; DB-backed routes will fail until it recovers")
     # Load static HOA data
     load_hoa_list(_load_hoa_csv())
     yield
     await gis_client.close()
     await plants_client.close()
     await chat_client.close()
-    await engine.dispose()
+    try:
+        await engine.dispose()
+    except Exception:
+        logger.exception("Error disposing database engine")
 
 
 app = FastAPI(title="FireShire", version="0.1.0", lifespan=lifespan)

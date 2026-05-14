@@ -18,3 +18,6 @@ dist/
 
 # Docker
 pgdata/
+
+# Playwright MCP session artifacts
+.playwright-mcp/
