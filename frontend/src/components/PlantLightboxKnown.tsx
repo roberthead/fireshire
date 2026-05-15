@@ -39,11 +39,8 @@ export function PlantLightboxKnown({ entry }: PlantLightboxKnownProps) {
 
   const suit = suitabilityFor(plant, entry.zone as ZoneKey)
   const scientific = `${plant.genus ?? ''} ${plant.species ?? ''}`.trim()
-
-  const values = plant.values.filter((v) => {
-    const raw = v.resolved?.value
-    return typeof raw === 'string' && raw.length > 0
-  })
+  const groupedValues = groupValuesByAttribute(plant.values)
+  const caption = plant.primaryImage?.caption?.trim()
 
   return (
     <>
@@ -64,25 +61,59 @@ export function PlantLightboxKnown({ entry }: PlantLightboxKnownProps) {
       </div>
 
       {plant.primaryImage?.url && (
-        <img
-          src={plant.primaryImage.url}
-          alt={plant.primaryImage.caption ?? ''}
-          className="plant-lightbox__hero"
-          loading="lazy"
-          decoding="async"
-        />
+        <figure className="plant-lightbox__figure">
+          <img
+            src={plant.primaryImage.url}
+            alt={caption ?? ''}
+            className="plant-lightbox__hero"
+            loading="lazy"
+            decoding="async"
+          />
+          {caption && (
+            <figcaption className="plant-lightbox__caption">{caption}</figcaption>
+          )}
+        </figure>
       )}
 
-      {values.length > 0 && (
+      {groupedValues.length > 0 && (
         <dl className="plant-lightbox__values">
-          {values.map((v) => (
-            <div key={v.attributeId} className="plant-lightbox__value-row">
-              <dt>{v.attributeName}</dt>
-              <dd>{v.resolved.value}</dd>
+          {groupedValues.map((g) => (
+            <div key={g.attributeId} className="plant-lightbox__value-row">
+              <dt>{g.attributeName}</dt>
+              <dd>{g.values.join(', ')}</dd>
             </div>
           ))}
         </dl>
       )}
     </>
   )
+}
+
+interface GroupedValue {
+  attributeId: string
+  attributeName: string
+  values: string[]
+}
+
+function groupValuesByAttribute(
+  values: Plant['values'],
+): GroupedValue[] {
+  const order: string[] = []
+  const groups = new Map<string, GroupedValue>()
+  for (const v of values) {
+    const text = v.resolved?.value
+    if (typeof text !== 'string' || text.length === 0) continue
+    const existing = groups.get(v.attributeId)
+    if (existing) {
+      if (!existing.values.includes(text)) existing.values.push(text)
+      continue
+    }
+    order.push(v.attributeId)
+    groups.set(v.attributeId, {
+      attributeId: v.attributeId,
+      attributeName: v.attributeName,
+      values: [text],
+    })
+  }
+  return order.map((id) => groups.get(id)!)
 }

@@ -420,13 +420,25 @@ body {
   border-radius: 3px;
 }
 
+.plant-lightbox__figure {
+  margin: 0 0 var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
 .plant-lightbox__hero {
   display: block;
   width: 100%;
   max-height: 240px;
   object-fit: cover;
   border-radius: var(--radius);
-  margin-bottom: var(--space-3);
+}
+
+.plant-lightbox__caption {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 
 .plant-lightbox__values {
