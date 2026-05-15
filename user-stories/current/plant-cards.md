@@ -22,14 +22,14 @@ I WANT to see a lightbox where I can enter a more detailed description
 2. **Card content.** Common name (truncated as needed) + the plant's `primaryImage` thumbnail. No suitability badge / scientific name on the card itself — those live in the lightbox.
 3. **Lightbox content for known plants.** Render *all* of the plant's `values[]` attributes from the LWF API as a key/value list. Curate later once we see what's noisy.
 4. **Custom-item descriptions persist.** Save into the existing `plant_entries.notes` field on the backend. Lightbox provides an editable text area; commit on blur or explicit Save.
-5. **All actions live in the lightbox.** Move (zone chips), Ask Rascal (chat), and Delete are pulled off the card surface and rendered inside the lightbox. The card itself is a clean trading-card face with image + title only. Move chips on tiny cards would dominate the visual.
+5. **All actions live in the lightbox.** Move (zone chips), Chat (chat), and Delete are pulled off the card surface and rendered inside the lightbox. The card itself is a clean trading-card face with image + title only. Move chips on tiny cards would dominate the visual.
 6. **Custom (no `plant_id`) vs known (`plant_id` set) cards.** Same 5:7 aspect ratio. Custom cards show a placeholder image (icon) instead of `primaryImage`, and the lightbox shows the editable description field instead of the `values[]` list.
 
 ## Implementation Plan
 
 ### Overview
 
-Replace the per-zone `<PlantEntryRow>` list with a responsive **5:7 trading-card grid** built from two new components (`PlantCard`, `PlantCardGrid`), and lift all per-entry actions (move chips, Ask Rascal, Delete, edit description) into a single **`PlantLightbox`** dialog with two body variants — `PlantLightboxKnown` (renders LWF `values[]` as a `<dl>`) and `PlantLightboxCustom` (editable `notes` textarea persisted via existing `updateEntry`). No backend changes expected; `notes` and PATCH already work (verify in Increment 5 checkpoint).
+Replace the per-zone `<PlantEntryRow>` list with a responsive **5:7 trading-card grid** built from two new components (`PlantCard`, `PlantCardGrid`), and lift all per-entry actions (move chips, Chat, Delete, edit description) into a single **`PlantLightbox`** dialog with two body variants — `PlantLightboxKnown` (renders LWF `values[]` as a `<dl>`) and `PlantLightboxCustom` (editable `notes` textarea persisted via existing `updateEntry`). No backend changes expected; `notes` and PATCH already work (verify in Increment 5 checkpoint).
 
 ### Increment 1 — Component skeleton + state ownership (no UI yet)
 
@@ -56,11 +56,11 @@ Replace the per-zone `<PlantEntryRow>` list with a responsive **5:7 trading-card
 - Backdrop click: detect via `e.target === dialogRef.current` (clicks bubble from the `<dialog>` when the backdrop is hit).
 - Return focus: cache `document.activeElement` (the card) at mount; on close, call `.focus()` on it inside a `requestAnimationFrame` (cards re-render on entry mutations).
 - Header: title + close button (× 44×44, `aria-label="Close"`).
-- Footer / action rail (shared across variants): 4 zone-move chips (lifted from `PlantEntryRow`, same `aria-label="Move to Zone X-Y"`), Ask Rascal, Delete.
+- Footer / action rail (shared across variants): 4 zone-move chips (lifted from `PlantEntryRow`, same `aria-label="Move to Zone X-Y"`), Chat, Delete.
 - Behavior decisions:
   - **Move while open**: do NOT close the lightbox. Update in place; chips re-render with new disabled state; announce via existing polite announcer.
   - **Delete from lightbox**: close first, then call existing `handleDelete(entry)` so the undo toast flow is identical. Return focus to the closest still-rendered card in the same zone (or zone's "+ Add plant" button if none remain) via a small `focusAfterRemoval(zone)` helper.
-  - **Ask Rascal**: close lightbox, call `handleAskRascal(entry)`, focus moves to chat input via existing effect.
+  - **Chat**: close lightbox, call `handleChat(entry)`, focus moves to chat input via existing effect.
 - Tests (`PlantLightbox.test.tsx`): opens/closes on `entry` prop, `aria-labelledby` set, ESC closes, backdrop click closes, inner click doesn't, focus returns to trigger on close, move keeps it open, delete closes it.
 - Risk: verify jsdom `<dialog>` + `showModal()` support in our vitest version. If unsupported, fall back to a `role="dialog"` div with a manual focus trap (sentinel focus loops) — keep the component API stable so the swap is local.
 
@@ -88,7 +88,7 @@ Replace the per-zone `<PlantEntryRow>` list with a responsive **5:7 trading-card
 - **`PlantEntryRow.test.tsx`** → rename to `PlantLightbox.integration.test.tsx`. Retarget assertions:
   - "plant name and scientific name" → covered in `PlantLightboxKnown.test.tsx`.
   - "Compatible / Use caution / mismatch warning" → moved into `PlantLightboxKnown.test.tsx`.
-  - "Ask Rascal invokes onAskRascal" → action rail.
+  - "Chat invokes onChat" → action rail.
   - "clicking a move chip calls onMove" → action rail inside dialog.
   - "current-zone chip disabled" → same, inside dialog.
   - "delete invokes onDelete" → same, inside dialog.

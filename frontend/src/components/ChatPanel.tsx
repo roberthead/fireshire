@@ -8,11 +8,12 @@ export interface ChatPanelProps {
   address?: string
   zones: string[]
   plants: Plant[]
+  initialInput?: string
 }
 
-export function ChatPanel({ address, zones, plants }: ChatPanelProps) {
+export function ChatPanel({ address, zones, plants, initialInput = '' }: ChatPanelProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [input, setInput] = useState('')
+  const [input, setInput] = useState(initialInput)
   const [isStreaming, setIsStreaming] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

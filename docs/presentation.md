@@ -129,7 +129,7 @@ Taxlots  Buildings        React Frontend
 - Interactive zone legend with visibility toggles
 - Accessible zone summary for screen readers
 - Plant recommendations filtered by active zones
-- AI chat assistant ("Rascal") for landscaping guidance
+- AI chat assistant for landscaping guidance
 - Mobile-responsive layout with WCAG touch targets
 
 ---

@@ -1,13 +1,15 @@
 import { useEffect, useId, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import type { PlantEntry, ZoneKey } from '../lib/api'
 import { PlantLightboxKnown } from './PlantLightboxKnown'
 import { PlantLightboxCustom } from './PlantLightboxCustom'
+import { ChatPanel } from './ChatPanel'
 
 export interface PlantLightboxProps {
   entry: PlantEntry
+  address?: string
   onClose: () => void
   onMove: (entry: PlantEntry, nextZone: ZoneKey) => void
-  onAskRascal: (entry: PlantEntry) => void
   onDelete: (entry: PlantEntry) => void
   onUpdateNotes: (entry: PlantEntry, notes: string) => Promise<void> | void
 }
@@ -16,11 +18,24 @@ const ALL_ZONES: ZoneKey[] = ['0-5', '5-10', '10-30', '30-100']
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"]), input:not([disabled]), textarea:not([disabled])'
 
+function zoneLabel(zone: ZoneKey): string {
+  switch (zone) {
+    case '0-5':
+      return 'Zone 1 (0–5 ft)'
+    case '5-10':
+      return 'Zone 2 (5–10 ft)'
+    case '10-30':
+      return 'Zone 3 (10–30 ft)'
+    case '30-100':
+      return 'Zone 4 (30–100 ft)'
+  }
+}
+
 export function PlantLightbox({
   entry,
+  address,
   onClose,
   onMove,
-  onAskRascal,
   onDelete,
   onUpdateNotes,
 }: PlantLightboxProps) {
@@ -88,11 +103,6 @@ export function PlantLightbox({
     onDelete(entry)
   }
 
-  function handleAskRascal() {
-    onClose()
-    onAskRascal(entry)
-  }
-
   const body = useMemo(() => {
     if (isCustom) {
       return (
@@ -105,7 +115,9 @@ export function PlantLightbox({
     return <PlantLightboxKnown entry={entry} />
   }, [entry, isCustom, onUpdateNotes])
 
-  return (
+  const chatPrefill = `Tell me about ${entry.plant_name} in ${zoneLabel(entry.zone as ZoneKey)}.`
+
+  return createPortal(
     <div
       className="plant-lightbox-backdrop"
       onMouseDown={handleBackdropMouseDown}
@@ -131,40 +143,34 @@ export function PlantLightbox({
           </button>
         </header>
 
-        <div className="plant-lightbox__body">{body}</div>
+        <div className="plant-lightbox__columns">
+          <div className="plant-lightbox__card-col">
+            <div className="plant-lightbox__card">{body}</div>
 
-        <footer className="plant-lightbox__actions">
-          <div
-            role="group"
-            aria-label={`Move ${entry.plant_name} to another zone`}
-            className="plant-lightbox__moves"
-          >
-            {ALL_ZONES.map((z) => {
-              const isCurrent = z === entry.zone
-              return (
-                <button
-                  key={z}
-                  type="button"
-                  data-move-chip
-                  disabled={isCurrent}
-                  onClick={() => onMove(entry, z)}
-                  aria-label={`Move to Zone ${z}`}
-                  aria-current={isCurrent ? 'true' : undefined}
-                  className="plant-lightbox__chip"
-                >
-                  {z}
-                </button>
-              )
-            })}
-          </div>
-          <div className="plant-lightbox__action-buttons">
-            <button
-              type="button"
-              onClick={handleAskRascal}
-              className="plant-lightbox__ask"
+            <div
+              role="group"
+              aria-label={`Move ${entry.plant_name} to another zone`}
+              className="plant-lightbox__moves"
             >
-              Ask Rascal
-            </button>
+              {ALL_ZONES.map((z) => {
+                const isCurrent = z === entry.zone
+                return (
+                  <button
+                    key={z}
+                    type="button"
+                    data-move-chip
+                    disabled={isCurrent}
+                    onClick={() => onMove(entry, z)}
+                    aria-label={`Move to Zone ${z}`}
+                    aria-current={isCurrent ? 'true' : undefined}
+                    className="plant-lightbox__chip"
+                  >
+                    {z}
+                  </button>
+                )
+              })}
+            </div>
+
             <button
               type="button"
               onClick={handleDelete}
@@ -174,8 +180,21 @@ export function PlantLightbox({
               Delete
             </button>
           </div>
-        </footer>
+
+          <div
+            className="plant-lightbox__chat-col"
+            aria-label={`Chat about ${entry.plant_name}`}
+          >
+            <ChatPanel
+              address={address}
+              zones={[entry.zone]}
+              plants={[]}
+              initialInput={chatPrefill}
+            />
+          </div>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

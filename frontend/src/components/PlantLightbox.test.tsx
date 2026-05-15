@@ -63,7 +63,6 @@ function renderLightbox(entry: PlantEntry, plants = [knownPlant]) {
   })
   const onClose = vi.fn()
   const onMove = vi.fn()
-  const onAskRascal = vi.fn()
   const onDelete = vi.fn()
   const onUpdateNotes = vi.fn().mockResolvedValue(undefined)
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -73,13 +72,12 @@ function renderLightbox(entry: PlantEntry, plants = [knownPlant]) {
         entry={entry}
         onClose={onClose}
         onMove={onMove}
-        onAskRascal={onAskRascal}
         onDelete={onDelete}
         onUpdateNotes={onUpdateNotes}
       />
     </QueryClientProvider>,
   )
-  return { ...utils, onClose, onMove, onAskRascal, onDelete, onUpdateNotes }
+  return { ...utils, onClose, onMove, onDelete, onUpdateNotes }
 }
 
 beforeEach(() => {
@@ -103,9 +101,9 @@ describe('PlantLightbox shell', () => {
   })
 
   it('clicking the backdrop closes the dialog; clicking inside does not', () => {
-    const { onClose, container } = renderLightbox(makeEntry())
-    const backdrop = container.querySelector('.plant-lightbox-backdrop')!
-    const inner = container.querySelector('.plant-lightbox')!
+    const { onClose } = renderLightbox(makeEntry())
+    const backdrop = document.body.querySelector('.plant-lightbox-backdrop')!
+    const inner = document.body.querySelector('.plant-lightbox')!
     fireEvent.mouseDown(inner)
     expect(onClose).not.toHaveBeenCalled()
     fireEvent.mouseDown(backdrop)
@@ -134,11 +132,13 @@ describe('PlantLightbox shell', () => {
     expect(calls).toEqual(['close', 'delete'])
   })
 
-  it('Ask Rascal closes the dialog and invokes onAskRascal', () => {
-    const { onClose, onAskRascal } = renderLightbox(makeEntry())
-    fireEvent.click(screen.getByRole('button', { name: 'Ask Rascal' }))
-    expect(onClose).toHaveBeenCalled()
-    expect(onAskRascal).toHaveBeenCalled()
+  it('embeds a chat panel pre-seeded with the plant + zone in the input', () => {
+    renderLightbox(makeEntry({ plant_name: 'Rosemary', zone: '5-10' }))
+    const input = screen.getByPlaceholderText(
+      'Ask about fire-resilient landscaping...',
+    ) as HTMLInputElement
+    expect(input.value).toContain('Rosemary')
+    expect(input.value).toMatch(/Zone 2|5–10/)
   })
 
   it('initial focus lands on the first non-disabled move chip', async () => {

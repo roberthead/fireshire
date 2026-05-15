@@ -229,12 +229,6 @@ export function ZonePlantLists({
     setPendingDelete(null)
   }
 
-  function handleAskRascal(_entry: PlantEntry) {
-    void _entry
-    // V1: just open the chat and focus the input. No context pre-fill.
-    setChatOpen(true)
-  }
-
   async function handleUpdateNotes(entry: PlantEntry, notes: string) {
     await new Promise<void>((resolve, reject) => {
       updateMutation.mutate(
@@ -406,9 +400,9 @@ export function ZonePlantLists({
       {openEntry && (
         <PlantLightbox
           entry={openEntry}
+          address={address}
           onClose={() => setOpenEntryId(null)}
           onMove={handleMove}
-          onAskRascal={handleAskRascal}
           onDelete={handleDelete}
           onUpdateNotes={handleUpdateNotes}
         />
@@ -465,7 +459,7 @@ function Header({
             type="button"
             onClick={onToggleChat}
             aria-pressed={chatOpen}
-            aria-label={chatOpen ? 'Back to plants' : 'Open Rascal chat'}
+            aria-label={chatOpen ? 'Back to plants' : 'Open chat'}
             style={{
               background: 'none',
               border: '1px solid rgba(255,255,255,0.2)',

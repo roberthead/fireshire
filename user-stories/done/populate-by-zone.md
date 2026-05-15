@@ -22,12 +22,12 @@ SO THAT I can inventory what's growing in each zone and see an advisory suitabil
 - Each plant row shows:
   - Plant name (common + scientific if from LWF)
   - Suitability badge combining color + icon + text: Compatible / Use caution / Not rated
-  - **Ask Rascal** icon button (first-class, always visible on the row)
+  - **Chat** icon button (first-class, always visible on the row)
   - Move control: inline 4-chip zone picker (current zone disabled)
   - Delete icon
 - Move action: tapping a zone chip PATCHes the entry's `zone` and the row relocates to the new section; suitability recomputes
 - Delete action: immediate soft-delete with a 5-second undo toast (no inline confirmation)
-- Ask Rascal: button opens the existing chat panel and focuses the input; in this story, **no context is pre-filled** — passing plant context is a follow-up story
+- Chat: button opens the existing chat panel and focuses the input; in this story, **no context is pre-filled** — passing plant context is a follow-up story
 - Plant entries are persisted to PostgreSQL, scoped to the property (taxlot ID)
 - All visitors to the same address see the same entries (shared community data)
 - Maximum 100 entries per zone per property; plant-name label is capped at 100 characters
@@ -198,7 +198,7 @@ Row layout (right-aligned action strip, all ≥44px targets):
 
 1. Plant name (common) + scientific (italic, `lang="la"`)
 2. Suitability badge: color + icon + text ("Compatible" ✓ / "Use caution" ⚠ / "Not rated" ?)
-3. **Ask Rascal** icon button (chat-bubble icon, tooltip "Ask Rascal about this plant") — first-class, always visible
+3. **Chat** icon button (chat-bubble icon, tooltip "Chat about this plant") — first-class, always visible
 4. Move control: 4 inline zone chips; current zone disabled; tap to PATCH `zone`
 5. Delete icon
 
@@ -214,11 +214,11 @@ Zone mismatch shows inline warning text beneath the badge.
   - Dismiss respects `prefers-reduced-motion`
 - Undo action issues a PATCH clearing `deleted_at`
 
-### Increment 4 — Ask Rascal Stub
+### Increment 4 — Chat Stub
 
 **Edit:** `frontend/src/components/PlantEntryRow.tsx` + `frontend/src/components/ChatPanel.tsx`
 
-- "Ask Rascal" opens the chat panel and focuses the input
+- "Chat" opens the chat panel and focuses the input
 - **No context pre-fill in this story** — cross-component context plumbing (plant name, zone, LWF data → chat pre-seed) is tracked as a follow-up story
 - Document this limitation in the Notes section of the follow-up story when it's written
 
@@ -267,7 +267,7 @@ Zone mismatch shows inline warning text beneath the badge.
   - Shows plant name, scientific name (with `lang="la"`), suitability badge (text + icon + color)
   - LWF plant shows scientific name; free-text shows "Not rated"
   - Zone mismatch shows "Use caution" badge + inline warning
-  - "Ask Rascal" opens chat panel and focuses the input; no pre-fill in V1
+  - "Chat" opens chat panel and focuses the input; no pre-fill in V1
   - Move chip PATCHes `zone`; row relocates to new section; current zone chip disabled
   - Delete soft-deletes immediately; undo toast appears with `role="status"` and reachable Undo button
   - Undo restores the entry (`deleted_at` cleared)
