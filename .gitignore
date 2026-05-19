@@ -8,6 +8,8 @@ dist/
 # Environment
 .env
 
+**/.env
+
 # IDE
 .idea/
 .vscode/
@@ -23,3 +25,4 @@ pgdata/
 .playwright-mcp/
 
 .claude/
+.vercel
