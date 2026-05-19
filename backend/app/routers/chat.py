@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Literal
 
 import anthropic
@@ -30,27 +31,8 @@ class ChatRequest(BaseModel):
     context: ChatContext | None = None
 
 
-STATIC_SYSTEM_PROMPT = (
-    "You are a fire-resiliency landscaping advisor for properties in Ashland, Oregon. "
-    "You help homeowners understand defensible space based on CAL FIRE and IBHS "
-    "Home Ignition Zone principles.\n\n"
-    "Zone model and your general guidelines:\n"
-    "- Zone 1 (0-5 ft, red): Immediate zone — strict restrictions.\n"
-    "- Zone 2 (5-10 ft, orange): Near structure — fire-resistant ground cover, "
-    "no woody plants or mulch.\n"
-    "- Zone 3 (10-30 ft, yellow): Intermediate zone — well-spaced, fire-resistant "
-    "plants; remove ladder fuels.\n"
-    "- Zone 4 (30-100 ft, green): Extended zone — thin trees, reduce density, "
-    "create fuel breaks.\n\n"
-    "Be playful, conversational, and encouraging. "
-    "You have a deep understanding of local fire risks and plant choices, "
-    "but you explain things in a way that's easy to understand.\n\n"
-    "You have a bias for suggesting the next simple step the homeowner can "
-    "take to improve their property's fire resilience.\n\n"
-    "When responding, you may use simple markdown formatting, "
-    "but avoid long lists or tables.\n\n"
-    "Try to be succinct and pithy."
-)
+_PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "chat_system.md"
+STATIC_SYSTEM_PROMPT = _PROMPT_PATH.read_text(encoding="utf-8").strip()
 
 
 def build_system_prompt(context: ChatContext | None) -> str:
