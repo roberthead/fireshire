@@ -86,10 +86,25 @@ async def test_chat_stream_success(client):
     assert response.headers["content-type"].startswith("text/event-stream")
 
     body = response.text
-    assert "data: Hello\n\n" in body
-    assert "data:  world\n\n" in body
-    assert "data: !\n\n" in body
-    assert "data: [DONE]\n\n" in body
+    assert 'data: {"text": "Hello"}\n\n' in body
+    assert 'data: {"text": " world"}\n\n' in body
+    assert 'data: {"text": "!"}\n\n' in body
+    assert 'data: {"done": true}\n\n' in body
+
+
+@pytest.mark.asyncio
+async def test_chat_stream_preserves_newlines_in_chunks(client):
+    """Regression: chunks containing \\n must survive the SSE wire intact."""
+    fake_ctx = FakeStreamContext(["**Heading**\n\nNext paragraph", "\n- bullet"])
+    with _patch_chat_client(fake_ctx):
+        response = await client.post(
+            "/chat/stream",
+            json={"message": "test"},
+        )
+    assert response.status_code == 200
+    body = response.text
+    assert '"text": "**Heading**\\n\\nNext paragraph"' in body
+    assert '"text": "\\n- bullet"' in body
 
 
 @pytest.mark.asyncio
@@ -101,7 +116,7 @@ async def test_chat_stream_api_error_at_creation_yields_error_event(client):
             json={"message": "Hello"},
         )
     assert response.status_code == 200
-    assert "data: [ERROR]" in response.text
+    assert '"error":' in response.text
     assert "invalid api key" in response.text
 
 
@@ -114,7 +129,7 @@ async def test_chat_stream_api_error_during_stream_yields_error_event(client):
             json={"message": "Hello"},
         )
     assert response.status_code == 200
-    assert "data: [ERROR]" in response.text
+    assert '"error":' in response.text
 
 
 @pytest.mark.asyncio

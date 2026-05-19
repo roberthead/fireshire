@@ -57,7 +57,7 @@ describe('ChatPanel', () => {
   it('sending a message displays the user message in the chat area', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      body: makeSSEStream(['data: [DONE]\n\n']),
+      body: makeSSEStream(['data: {"done": true}\n\n']),
     })
 
     render(<ChatPanel {...defaultProps} />)
@@ -74,9 +74,9 @@ describe('ChatPanel', () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       body: makeSSEStream([
-        'data: Hello\n\n',
-        'data:  world\n\n',
-        'data: [DONE]\n\n',
+        'data: {"text": "Hello"}\n\n',
+        'data: {"text": " world"}\n\n',
+        'data: {"done": true}\n\n',
       ]),
     })
 
@@ -87,6 +87,28 @@ describe('ChatPanel', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Hello world')).toBeTruthy()
+    })
+  })
+
+  it('preserves newlines in streamed chunks (markdown round-trip)', async () => {
+    // Regression: SSE payloads used to be raw text, and embedded \n characters
+    // got swallowed because lines without a leading "data: " were dropped.
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      body: makeSSEStream([
+        `data: ${JSON.stringify({ text: '**Heading**\n\nNext paragraph' })}\n\n`,
+        `data: ${JSON.stringify({ done: true })}\n\n`,
+      ]),
+    })
+
+    render(<ChatPanel {...defaultProps} />)
+    const input = screen.getByPlaceholderText('Ask about fire-resilient landscaping...')
+    fireEvent.change(input, { target: { value: 'Hi' } })
+    fireEvent.click(screen.getByLabelText('Send message'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Heading')).toBeTruthy()
+      expect(screen.getByText('Next paragraph')).toBeTruthy()
     })
   })
 
@@ -115,7 +137,7 @@ describe('ChatPanel', () => {
   it('has no axe violations after a streamed response', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      body: makeSSEStream(['data: Hello world\n\n', 'data: [DONE]\n\n']),
+      body: makeSSEStream(['data: {"text": "Hello world"}\n\n', 'data: {"done": true}\n\n']),
     })
 
     const { container } = render(<ChatPanel {...defaultProps} />)

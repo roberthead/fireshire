@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Literal
 
 import anthropic
@@ -91,10 +92,10 @@ async def chat_stream(request: ChatRequest):
                 messages=messages,
             ) as stream:
                 async for text in stream.text_stream:
-                    yield f"data: {text}\n\n"
-            yield "data: [DONE]\n\n"
+                    yield f"data: {json.dumps({'text': text})}\n\n"
+            yield 'data: {"done": true}\n\n'
         except (anthropic.APIError, TypeError) as exc:
-            yield f"data: [ERROR] {exc}\n\n"
+            yield f"data: {json.dumps({'error': str(exc)})}\n\n"
 
     return StreamingResponse(
         generate(),

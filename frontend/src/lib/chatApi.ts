@@ -38,31 +38,35 @@ export async function streamChat(
   const decoder = new TextDecoder()
   let buffer = ''
 
+  const handleLine = (line: string): 'done' | 'continue' => {
+    if (!line.startsWith('data: ')) return 'continue'
+    const raw = line.slice(6)
+    let evt: { text?: string; done?: boolean; error?: string }
+    try {
+      evt = JSON.parse(raw)
+    } catch {
+      return 'continue'
+    }
+    if (evt.done) return 'done'
+    if (evt.error) throw new ApiError(500, 'chat_error', evt.error)
+    if (typeof evt.text === 'string') onChunk(evt.text)
+    return 'continue'
+  }
+
   while (true) {
     const { done, value } = await reader.read()
     if (done) break
 
     buffer += decoder.decode(value, { stream: true })
+    // JSON envelopes contain no raw newlines, so splitting on \n cleanly
+    // delimits SSE lines.
     const lines = buffer.split('\n')
-    // Keep the last (possibly incomplete) line in the buffer
     buffer = lines.pop() ?? ''
 
     for (const line of lines) {
-      if (!line.startsWith('data: ')) continue
-      const payload = line.slice(6)
-      if (payload === '[DONE]') return
-      if (payload.startsWith('[ERROR]')) {
-        throw new ApiError(500, 'chat_error', payload.slice(8))
-      }
-      onChunk(payload)
+      if (handleLine(line) === 'done') return
     }
   }
 
-  // Process any remaining buffer
-  if (buffer.startsWith('data: ')) {
-    const payload = buffer.slice(6)
-    if (payload !== '[DONE]') {
-      onChunk(payload)
-    }
-  }
+  if (buffer) handleLine(buffer)
 }
